@@ -437,7 +437,7 @@ header .header-inner{display:flex;align-items:center;justify-content:space-betwe
 .m-pin{width:30px;height:30px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,.2);box-shadow:0 2px 8px rgba(0,0,0,.5)}
 .m-pin-inner{transform:rotate(45deg);font-size:11px;line-height:1;font-family:"Space Mono",monospace;font-weight:700}
 .m-pin-inner--narrow{font-size:9px}
-.m-pin-inner-shop-logo{width:24px;height:24px;border-radius:50%;display:block;background-size:cover;background-position:center;background-repeat:no-repeat;box-shadow:0 0 0 1px rgba(255,255,255,.35),0 2px 5px rgba(0,0,0,.35)}
+.m-pin-inner-shop-logo{width:24px;height:24px;border-radius:50%;display:block;object-fit:cover;box-shadow:0 0 0 1px rgba(255,255,255,.35),0 2px 5px rgba(0,0,0,.35)}
 .m-snow{font-family:"Space Mono",monospace;font-size:9px;font-weight:700;color:#fff;margin-top:1px;text-shadow:0 1px 3px rgba(0,0,0,.8);white-space:nowrap}
 .custom-cluster-marker{width:34px;height:34px;border-radius:999px;background:rgba(77,217,196,.22);border:2px solid rgba(77,217,196,.75);color:#dffaf5;display:flex;align-items:center;justify-content:center;font-family:"Space Mono",monospace;font-size:12px;font-weight:700;box-shadow:0 4px 12px rgba(0,0,0,.45)}
 @media (max-width:700px){
@@ -3969,8 +3969,7 @@ initJmaSnowToggle();
 // Partner shop pin (different color so it stands out from resort pins)
 (function(){
   var s=PARTNER_SHOP;
-  var logoUrl='assets/pins/spray-red-disc.png';
-  var html=`<div class="custom-marker custom-marker-shop" title="${s.nameEn}"><div class="m-pin m-pin-shop" style="background:#e84b4b22;border-color:#e84b4b99"><span class="m-pin-inner m-pin-inner-shop-logo" style="background-image:url('${logoUrl}')"></span></div></div>`;
+  var html=`<div class="custom-marker custom-marker-shop" title="${s.nameEn}"><div class="m-pin m-pin-shop" style="background:#e84b4b22;border-color:#e84b4b99"><img class="m-pin-inner m-pin-inner-shop-logo" src="assets/pins/spray-red-disc.png" alt="Spray logo"></div></div>`;
   var icon=L.divIcon({html:html,className:"",iconSize:[36,44],iconAnchor:[18,42]});
   var m=L.marker([s.lat,s.lng],{icon:icon});
   m.on("click",function(){ window.open(s.url,"_blank"); });

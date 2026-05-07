@@ -3972,7 +3972,7 @@ initJmaSnowToggle();
 (function(){
   var s=PARTNER_SHOP;
   var logoUrl='assets/pins/spray-red-disc.png';
-  var html='<div class="custom-marker custom-marker-shop" title="'+s.name+'"><div class="m-pin m-pin-shop" style="background:#e84b4b22;border-color:#e84b4b99"><span class="m-pin-inner m-pin-inner-shop-logo" style="background-image:url(\\''+logoUrl+'\\')"></span></div></div>';
+  var html=`<div class="custom-marker custom-marker-shop" title="${s.name}"><div class="m-pin m-pin-shop" style="background:#e84b4b22;border-color:#e84b4b99"><span class="m-pin-inner m-pin-inner-shop-logo" style="background-image:url('${logoUrl}')"></span></div></div>`;
   var icon=L.divIcon({html:html,className:"",iconSize:[36,44],iconAnchor:[18,42]});
   var m=L.marker([s.lat,s.lng],{icon:icon});
   m.on("click",function(){ window.open(s.url,"_blank"); });

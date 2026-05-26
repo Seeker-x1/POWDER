@@ -7,7 +7,7 @@ const path = require("path");
 
 const htmlPath = path.join(__dirname, "..", "ski-powder-hunter.html");
 const outPath = path.join(__dirname, "..", "data", "weather.json");
-const DELAY_MS = 600; // 1リクエストあたりの待ち時間（API負荷対策）
+const DELAY_MS = 250; // 1リクエストあたりの待ち時間（API負荷対策）。460件・20分制限内で完了させるため短縮。
 
 function extractResorts(html) {
   const startMarker = "const RESORTS = ";

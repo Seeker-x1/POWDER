@@ -1,13 +1,21 @@
 /**
  * 全ゲレンデの天気を Open-Meteo から取得し、data/weather.json に保存する。
  * GitHub Actions から 1 時間ごとに実行する想定。
+ *
+ * Performance notes:
+ * - fetch ごとに AbortController で per-request タイムアウトを設定し、応答が遅い API でハングしないようにする。
+ * - 軽い並列度 (CONCURRENCY) で実行することで 460 件規模を実時間 10 分以内に収める。
  */
 const fs = require("fs");
 const path = require("path");
 
 const htmlPath = path.join(__dirname, "..", "ski-powder-hunter.html");
 const outPath = path.join(__dirname, "..", "data", "weather.json");
-const DELAY_MS = 250; // 1リクエストあたりの待ち時間（API負荷対策）。460件・20分制限内で完了させるため短縮。
+
+// 1 リクエストあたりの最大待機 (ms)。これを超えたら諦めて次に進む。
+const FETCH_TIMEOUT_MS = 8000;
+// 同時並列度。Open-Meteo 無料枠の許容内 (実測 ~600 req/min) で安全圏。
+const CONCURRENCY = 8;
 
 function extractResorts(html) {
   const startMarker = "const RESORTS = ";
@@ -47,8 +55,53 @@ function processApiResponse(data) {
   return daily;
 }
 
-function sleep(ms) {
-  return new Promise((r) => setTimeout(r, ms));
+function buildUrl(r) {
+  const elev = r.elevation?.top != null ? `&elevation=${r.elevation.top}` : "";
+  return (
+    `https://api.open-meteo.com/v1/forecast?latitude=${r.lat}&longitude=${r.lng}` +
+    elev +
+    `&daily=snowfall_sum,wind_speed_10m_max,wind_direction_10m_dominant,wind_gusts_10m_max,temperature_2m_min,temperature_2m_max,precipitation_hours` +
+    `&hourly=wind_speed_850hPa,wind_direction_850hPa,snowfall,snow_depth` +
+    `&forecast_days=7&timezone=Asia%2FTokyo`
+  );
+}
+
+async function fetchOne(r) {
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), FETCH_TIMEOUT_MS);
+  try {
+    const res = await fetch(buildUrl(r), { signal: ac.signal });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return processApiResponse(data);
+  } catch (_) {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function runPool(resorts) {
+  const cache = {};
+  let nextIdx = 0;
+  let completed = 0;
+
+  async function worker() {
+    while (true) {
+      const i = nextIdx++;
+      if (i >= resorts.length) return;
+      const r = resorts[i];
+      cache[r.id] = await fetchOne(r);
+      completed++;
+      if (completed % 50 === 0 || completed === resorts.length) {
+        console.error(`Progress: ${completed}/${resorts.length}`);
+      }
+    }
+  }
+
+  const workers = Array.from({ length: Math.min(CONCURRENCY, resorts.length) }, () => worker());
+  await Promise.all(workers);
+  return cache;
 }
 
 async function main() {
@@ -56,29 +109,13 @@ async function main() {
   const resorts = extractResorts(html);
   if (!fs.existsSync(path.dirname(outPath))) fs.mkdirSync(path.dirname(outPath), { recursive: true });
 
-  const cache = {};
-  for (let i = 0; i < resorts.length; i++) {
-    const r = resorts[i];
-    const elev = r.elevation?.top != null ? `&elevation=${r.elevation.top}` : "";
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${r.lat}&longitude=${r.lng}` +
-      elev +
-      `&daily=snowfall_sum,wind_speed_10m_max,wind_direction_10m_dominant,wind_gusts_10m_max,temperature_2m_min,temperature_2m_max,precipitation_hours` +
-      `&hourly=wind_speed_850hPa,wind_direction_850hPa,snowfall,snow_depth` +
-      `&forecast_days=7&timezone=Asia%2FTokyo`;
-    try {
-      const res = await fetch(url);
-      const data = await res.json();
-      const daily = processApiResponse(data);
-      cache[r.id] = daily;
-    } catch (e) {
-      cache[r.id] = null;
-    }
-    if ((i + 1) % 50 === 0) console.error(`Progress: ${i + 1}/${resorts.length}`);
-    await sleep(DELAY_MS);
-  }
+  const startedAt = Date.now();
+  const cache = await runPool(resorts);
+  const elapsedSec = Math.round((Date.now() - startedAt) / 1000);
 
   fs.writeFileSync(outPath, JSON.stringify(cache), "utf8");
-  console.error("Wrote", outPath, Object.keys(cache).filter((k) => cache[k]).length, "resorts");
+  const ok = Object.keys(cache).filter((k) => cache[k]).length;
+  console.error("Wrote", outPath, ok, "/", resorts.length, "resorts in", elapsedSec, "s");
 }
 
 main().catch((e) => {

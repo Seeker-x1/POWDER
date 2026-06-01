@@ -30,6 +30,21 @@ pip install -r requirements.txt
 
 `.env` に `GEMINI_API_KEY=...` を設定（`.env.example` 参照）。
 
+## Git（push はこのフォルダから）
+
+このフォルダが **Git 管理の正本** です。リモートは `https://github.com/momentum-create/POWDER.git`（リポジトリ名は POWDER のまま）。
+
+```powershell
+cd $HOME\Desktop\Cloude\JAPOWSERCH
+git status
+git add .
+git commit -m "変更内容の要約"
+git pull --rebase origin main
+git push origin main
+```
+
+GitHub Desktop を使う場合も、**ローカルリポジトリのパスを `JAPOWSERCH` に変更**してください。旧 `Desktop\Cloude\POWDER` には `.git` はありません。
+
 ## よく使うコマンド
 
 - リゾート英語名生成: `npm run generate-resort-names-en`

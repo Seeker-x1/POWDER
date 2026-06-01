@@ -50,6 +50,27 @@
 
 ---
 
+## マップ日付レール（今日〜5日後）
+
+- **Handoff / 実装正本**: `.claude/agents/docs-knowledge/handoffs/map-date-rail-5days/`（`HANDOFF.md`, `IMPLEMENTATION_ORDER.md`）
+- **詳細 AC（参照）**: `.claude/agents/product-ux/IMPLEMENTATION_ORDER_MAP_DATE_RAIL_5DAYS.md`
+- **対象 DOM**: `#map-date-rail` → `#map-date-btns`（`.date-card`）
+- **方針**: **案 A** — offset **0〜5** の **6 チップ**を **1 行横スクロール**（欠番なし）。トップの日付案 A（前日〜+6・5 可視）は **別行**のまま。
+- **フロー**:
+
+```text
+[マップ表示]
+  → 日付レールで 今日 | 明日 | 明後日 | 3日後 | 4日後 | 5日後 を選択（横スクロール可）
+  → targetDayOffset 更新
+  → マーカー色／ポップアップ降雪・スコアが選択日に追従
+```
+
+- **ラベル（JA）**: 今日 / 明日 / 明後日 / 3日後 / 4日後 / 5日後  
+- **ラベル（EN）**: Today / Tmrw / +2d / +3d / +4d / +5d  
+- **Handoff**: 上記 IMPLEMENTATION_ORDER 内 `[HANDOFF]` → implementer
+
+---
+
 ## マップ詳細ボトムシート（モバイル・ターゲットB優先）— mock-012
 
 - **流入**: **マップピン**（`FocusView_FromMap`）。ランキング一発フォーカスとは **別経路**。

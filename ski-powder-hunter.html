@@ -1182,6 +1182,19 @@ header .header-inner{display:flex;align-items:center;justify-content:space-betwe
   /* マップ画面はスマホではフルスクリーンに近い形で表示し、サイドバーは非表示 */
   #view-map .sidebar{display:none}
   #view-map .leaflet-control-zoom{display:none!important}
+  #map-date-rail{
+    overflow-x:auto;
+    overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;
+    scroll-snap-type:x mandatory;
+    scroll-padding-inline:max(12px,env(safe-area-inset-left));
+  }
+  #map-date-rail .date-card{
+    flex:0 0 var(--map-chip-w,84px);
+    min-width:var(--map-chip-w,84px);
+    max-width:none;
+    scroll-snap-align:start;
+  }
   #map-date-btns .date-card__s{font-size:10px}
   /* 地図ステージが残り高さを確保 */
   .map-stage{flex:1;min-height:0}
@@ -2513,7 +2526,18 @@ function getPrevDayDisplayForResort(id, dayOffset, daily, resort){
   return { total, h12_18:h12, h18_24:h18, jst, sourceLabel:"D-1予測", sourceNearby:false, ruleTitle:"Open-Meteo予測の前日(D-1)を同一換算で表示" };
 }
 
-/** モバイル: 5チップ幅に合わせ --chip-w を設定（案A） */
+/** マップ日付レール（offset 0〜5）の主ラベル */
+function mapDateRailLabel(dayOffset){
+  if(dayOffset===0) return "今日";
+  if(dayOffset===1) return "明日";
+  if(dayOffset===2) return "明後日";
+  if(dayOffset===3) return "3日後";
+  if(dayOffset===4) return "4日後";
+  if(dayOffset===5) return "5日後";
+  return `+${dayOffset}日`;
+}
+
+/** モバイル: 5チップ幅に合わせ --chip-w を設定（案A）；マップレールは6チップ用 --map-chip-w */
 function updateDateStripChipWidths(){
   if(typeof window.matchMedia==="undefined") return;
   const m = window.matchMedia("(max-width: 700px)");
@@ -2521,6 +2545,8 @@ function updateDateStripChipWidths(){
     document.querySelectorAll(".date-btns-viewport").forEach(function(vp){
       vp.style.removeProperty("--chip-w");
     });
+    const mapRail = document.getElementById("map-date-rail");
+    if(mapRail) mapRail.style.removeProperty("--map-chip-w");
     return;
   }
   document.querySelectorAll(".date-btns-viewport").forEach(function(vp){
@@ -2532,6 +2558,18 @@ function updateDateStripChipWidths(){
     const chip = Math.max(48, (inner - 4 * gapPx) / 5);
     vp.style.setProperty("--chip-w", chip + "px");
   });
+  const mapRail = document.getElementById("map-date-rail");
+  if(mapRail){
+    const st = getComputedStyle(mapRail);
+    const pl = parseFloat(st.paddingLeft)||0;
+    const pr = parseFloat(st.paddingRight)||0;
+    const labelEl = mapRail.querySelector(".date-rail__label");
+    const labelW = labelEl ? labelEl.offsetWidth + 5 : 0;
+    const inner = Math.max(0, mapRail.clientWidth - pl - pr - labelW);
+    const gapPx = 5;
+    const chip = Math.max(72, Math.min(98, (inner - 5 * gapPx) / 6));
+    mapRail.style.setProperty("--map-chip-w", chip + "px");
+  }
 }
 
 /** アクティブ日付チップがビューポート内に収まるようスクロール（案A §6.2 / §8）
@@ -2540,6 +2578,7 @@ function updateDateStripChipWidths(){
 function ensureActiveDateChipVisible(trackId){
   const track = document.getElementById(trackId);
   if(!track) return;
+  const isMapRail = trackId==="map-date-btns";
   const vp = track.closest(".date-btns-viewport") || track.closest(".date-rail");
   if(!vp) return;
   if(window.matchMedia("(min-width: 701px)").matches){
@@ -2549,7 +2588,7 @@ function ensureActiveDateChipVisible(trackId){
   const active = track.querySelector(".date-btn.active, .date-card.is-active");
   if(!active) return;
   const maxScroll = Math.max(0, vp.scrollWidth - vp.clientWidth);
-  if(typeof targetDayOffset==="number" && targetDayOffset <= 3){
+  if(!isMapRail && typeof targetDayOffset==="number" && targetDayOffset <= 3){
     vp.scrollLeft = 0;
     return;
   }
@@ -2600,7 +2639,7 @@ function renderDateButtonsInto(containerId){
   const container = document.getElementById(containerId);
   if(!container) return;
   const isMapRail = containerId==="map-date-btns";
-  const mapOffsets = [0,1,4];
+  const mapOffsets = [0,1,2,3,4,5];
   const daysForRender = isMapRail
     ? mapOffsets.map(function(offset){ return { d:dates[offset], offset }; }).filter(function(v){ return !!v.d; })
     : dates.map(function(d, offset){ return { d, offset }; });
@@ -2609,9 +2648,7 @@ function renderDateButtonsInto(containerId){
     const dayOffset = entry.offset;
     let label;
     if(isMapRail){
-      if(i===0) label="今日";
-      else if(i===1) label="明日";
-      else label="4日後";
+      label = mapDateRailLabel(dayOffset);
     }else{
       if(dayOffset===0) label="今日";
       else if(dayOffset===1) label="明日";

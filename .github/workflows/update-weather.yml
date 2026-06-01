@@ -26,7 +26,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "nothing"
+          # fetch-weather-hourly.js は Node 標準のみ。npm cache 不要（cache: false 相当は cache 未指定）
 
       - name: Fetch weather and write data/weather.json
         run: node scripts/fetch-weather-hourly.js

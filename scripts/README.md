@@ -11,7 +11,7 @@
 UTF-8 で読み書きするため、日本語の名前変更でも確実に置換できます。
 
 ```powershell
-# リポジトリのルート（POWDER）で実行
+# リポジトリのルート（JAPOWSERCH）で実行
 .\scripts\update-resorts-list.ps1 -Old "旧名称" -New "新名称"
 ```
 

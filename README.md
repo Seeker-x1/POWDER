@@ -17,8 +17,10 @@
 ### Node 側（Japowserch 本体）
 
 ```bash
-npm install
+npm ci
 ```
+
+依存の追加・更新時のみ `npm install <pkg>` を使い、`package-lock.json` をコミットする。
 
 ### Gemini 側（必要時のみ）
 

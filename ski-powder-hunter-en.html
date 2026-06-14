@@ -2254,8 +2254,9 @@ function updatePrevDayJmaChips(){
 let resortSnowCache = {};  // id -> { depth_cm, updated_at }（ゲレンデ公表・data/resort-snow.json または RESORTS.snowDepth）
 let liftTimesCache = {};   // id -> "8:00"（リフト開始・data/lift-times.json or RESORTS[].liftStart）
 let operatingCache = {};   // id -> { open: "12-01", close: "04-30" }（営業期間・data/resort-operating.json or RESORTS）
-let resortGuidesData = null; // guides.japowserch.com (data/resort-guides.json)
+let resortGuidesData = {"baseUrl":"https://guides.japowserch.com","defaultLocale":"ja","guides":{"8":{"registryId":"asahigaoka","tier":"mock"},"35":{"registryId":"otoifuji","tier":"mock"},"39":{"registryId":"shimukappu","tier":"mock"},"40":{"registryId":"minami-furano","tier":"mock"},"50":{"registryId":"biei","tier":"mock"},"58":{"registryId":"abashiri-lv","tier":"mock"},"60":{"registryId":"unabetsu","tier":"mock"},"65":{"registryId":"kiyosato","tier":"mock"},"66":{"registryId":"gokazan","tier":"mock"},"98":{"registryId":"sichinohe","tier":"mock"},"326":{"registryId":"tsunan","tier":"mock"}}};
 const GUIDES_BASE_URL = "https://guides.japowserch.com";
+fetch("data/resort-guides.json").then(function(r){ return r.ok?r.json():null; }).then(function(d){ if(d&&d.guides) resortGuidesData=d; }).catch(function(){});
 let lastDataUpdated = null; // 表示用「最終更新」時刻（weather.json の Last-Modified または API 取得時）
 const fetchQueue = [];
 let fetchInFlight = 0;
@@ -4330,7 +4331,11 @@ function selectResort(id, opts){
   const gmUrl=`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(displayNameEn(r))}&query_place_id=&center=${r.lat},${r.lng}`;
   const gmBtn=`<a class="popup-btn popup-btn-secondary" href="${gmUrl}" target="_blank">Google Maps ↗</a>`;
   contentHtml+=`<div class="popup-feedback"><button class="popup-feedback-btn" onclick="openFeedback('closed',${id})">Was closed / lifts stopped</button><button class="popup-feedback-btn" onclick="openFeedback('low-snow',${id})">Much less snow than shown</button></div>`;
-  contentHtml+=`<div class="popup-btns"><button class="popup-btn popup-btn-primary" onclick="onDetailClick(${id})">Details</button>${gmBtn}${urlBtn}</div>`;
+  const guideUrl=getResortGuideUrl(id);
+  const detailBtn=guideUrl
+    ? `<a class="popup-btn popup-btn-primary" href="${guideUrl}" target="_blank" rel="noopener noreferrer">Details ↗</a>`
+    : `<button type="button" class="popup-btn popup-btn-primary" onclick="scrollToCard(${id})">Details</button>`;
+  contentHtml+=`<div class="popup-btns">${detailBtn}${gmBtn}${urlBtn}</div>`;
 
   const popupMaxW = 260;
   const latlng = [r.lat,r.lng];

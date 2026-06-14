@@ -52,3 +52,10 @@
    - `ski-powder-hunter.html` の RESORTS の各要素に `nearby` が追加されます
 
 これでマップのポップアップに「車で近いゲレンデ」が表示され、クリックでそのゲレンデに飛べます。
+
+## ガイド LP（guides.japowserch.com）
+
+- **resort-guides.json** … JAPOW マップ ID → `guides.japowserch.com/{registry-id}/` の対応表。SkiresortWebPlan の `data/resort-guides.json` と同期。
+- **形式**: `{ "baseUrl": "https://guides.japowserch.com", "guides": { "50": { "registryId": "biei", "tier": "mock" }, ... } }`
+- **使い方**: マップポップアップの「詳細確認」クリック時、11 施設は新規タブでガイド LP へ。未掲載 ID は従来どおりサイドバーカードへスクロール。
+- **更新**: SkiresortWebPlan 側を更新したら本ファイルをコピーするか、`https://guides.japowserch.com/resort-guides.json` から取得する運用に切り替え可能。

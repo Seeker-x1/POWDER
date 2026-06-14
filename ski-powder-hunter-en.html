@@ -849,6 +849,8 @@ header .header-inner{display:flex;align-items:center;justify-content:space-betwe
 .date-card__jma-slot{display:none!important}
 .date-card__snow{display:none;font-size:9px;font-weight:600;margin-top:3px;font-variant-numeric:tabular-nums;color:var(--accent-mock)}
 .date-card.is-active .date-card__snow{display:block}
+.date-card--prev{opacity:.85;cursor:default}
+.date-card--prev:disabled{pointer-events:none}
 .date-card__hint{display:block;font-size:8px;color:var(--text-secondary);margin-top:3px;line-height:1.2}
 .date-card.is-active .date-card__hint{display:none}
 .hw-strip-hint{font-size:9px;color:var(--text-secondary);margin-top:2px}
@@ -2252,6 +2254,8 @@ function updatePrevDayJmaChips(){
 let resortSnowCache = {};  // id -> { depth_cm, updated_at }（ゲレンデ公表・data/resort-snow.json または RESORTS.snowDepth）
 let liftTimesCache = {};   // id -> "8:00"（リフト開始・data/lift-times.json or RESORTS[].liftStart）
 let operatingCache = {};   // id -> { open: "12-01", close: "04-30" }（営業期間・data/resort-operating.json or RESORTS）
+let resortGuidesData = null; // guides.japowserch.com (data/resort-guides.json)
+const GUIDES_BASE_URL = "https://guides.japowserch.com";
 let lastDataUpdated = null; // 表示用「最終更新」時刻（weather.json の Last-Modified または API 取得時）
 const fetchQueue = [];
 let fetchInFlight = 0;
@@ -2392,7 +2396,18 @@ function getPrevDayDisplayForResort(id, dayOffset, daily, resort){
   return { total, h12_18:h12, h18_24:h18, jst, sourceLabel:"D-1 forecast", sourceNearby:false, ruleTitle:"D-1 forecast values shown with the same conversion rule" };
 }
 
+function mapRailDateEntry(offset, dates){
+  if(offset<0){
+    const d = new Date(dates[0]);
+    d.setDate(d.getDate()-1);
+    return { d, offset };
+  }
+  if(offset>=0 && offset<dates.length) return { d:dates[offset], offset };
+  return null;
+}
+
 function mapDateRailLabel(dayOffset){
+  if(dayOffset===-1) return "Prev";
   if(dayOffset===0) return "Today";
   if(dayOffset===1) return "Tmrw";
   if(dayOffset===2) return "+2d";
@@ -2431,16 +2446,15 @@ function updateDateStripChipWidths(){
     const labelW = labelEl ? labelEl.offsetWidth + 5 : 0;
     const inner = Math.max(0, mapRail.clientWidth - pl - pr - labelW);
     const gapPx = 5;
-    const chip = Math.max(72, Math.min(98, (inner - 5 * gapPx) / 6));
+    const chip = Math.max(68, Math.min(98, (inner - 6 * gapPx) / 7));
     mapRail.style.setProperty("--map-chip-w", chip + "px");
   }
 }
 
-/** Same as JP: Option A §6.2 — no centering scroll for offset 0–3 (keeps 5 chips 前日…+3 at scrollLeft 0). */
+/** Option A §6.2 — offset 0–3: scrollLeft 0; map rail same so Today/Tmrw stay visible. */
 function ensureActiveDateChipVisible(trackId){
   const track = document.getElementById(trackId);
   if(!track) return;
-  const isMapRail = trackId==="map-date-btns";
   const vp = track.closest(".date-btns-viewport") || track.closest(".date-rail");
   if(!vp) return;
   if(window.matchMedia("(min-width: 701px)").matches){
@@ -2450,7 +2464,7 @@ function ensureActiveDateChipVisible(trackId){
   const active = track.querySelector(".date-btn.active, .date-card.is-active");
   if(!active) return;
   const maxScroll = Math.max(0, vp.scrollWidth - vp.clientWidth);
-  if(!isMapRail && typeof targetDayOffset==="number" && targetDayOffset <= 3){
+  if(typeof targetDayOffset==="number" && targetDayOffset <= 3){
     vp.scrollLeft = 0;
     return;
   }
@@ -2501,9 +2515,9 @@ function renderDateButtonsInto(containerId){
   const container = document.getElementById(containerId);
   if(!container) return;
   const isMapRail = containerId==="map-date-btns";
-  const mapOffsets = [0,1,2,3,4,5];
+  const mapOffsets = [-1,0,1,2,3,4,5];
   const daysForRender = isMapRail
-    ? mapOffsets.map(function(offset){ return { d:dates[offset], offset }; }).filter(function(v){ return !!v.d; })
+    ? mapOffsets.map(function(offset){ return mapRailDateEntry(offset, dates); }).filter(function(v){ return !!v&&!!v.d; })
     : dates.map(function(d, offset){ return { d, offset }; });
   const daysBlock = daysForRender.map((entry,i)=>{
     const d = entry.d;
@@ -2526,7 +2540,10 @@ function renderDateButtonsInto(containerId){
     const extraClass = isMissing ? " zero" : "";
     const snowLine = isMissing ? "—" : `❄${Number(snowCm).toFixed(1)}cm`;
     if(isMapRail){
-      return `<button type="button" class="date-card${dayOffset===targetDayOffset?" is-active":""}${extraClass}" data-offset="${dayOffset}" aria-pressed="${dayOffset===targetDayOffset}"><div class="date-card__d">${label}</div><div class="date-card__s">${mm}/${dd} (${dayName})</div><div class="date-card__snow">${snowLine}</div></button>`;
+      const isPrev = dayOffset<0;
+      const isOn = !isPrev && dayOffset===targetDayOffset;
+      const dis = isPrev ? " disabled" : "";
+      return `<button type="button" class="date-card${isOn?" is-active":""}${isPrev?" date-card--prev":""}${extraClass}" data-offset="${dayOffset}" aria-pressed="${isOn?"true":"false"}"${dis}><div class="date-card__d">${label}</div><div class="date-card__s">${mm}/${dd} (${dayName})</div><div class="date-card__snow">${snowLine}</div></button>`;
     }
     const snowHtml = !isMissing ? `<span class="date-snow">❄${Number(snowCm).toFixed(1)}cm</span>` : `<span class="date-snow">—</span>`;
     return `<button class="date-btn${dayOffset===targetDayOffset?" active":""}${extraClass}" data-offset="${dayOffset}">
@@ -4313,7 +4330,7 @@ function selectResort(id, opts){
   const gmUrl=`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(displayNameEn(r))}&query_place_id=&center=${r.lat},${r.lng}`;
   const gmBtn=`<a class="popup-btn popup-btn-secondary" href="${gmUrl}" target="_blank">Google Maps ↗</a>`;
   contentHtml+=`<div class="popup-feedback"><button class="popup-feedback-btn" onclick="openFeedback('closed',${id})">Was closed / lifts stopped</button><button class="popup-feedback-btn" onclick="openFeedback('low-snow',${id})">Much less snow than shown</button></div>`;
-  contentHtml+=`<div class="popup-btns"><button class="popup-btn popup-btn-primary" onclick="scrollToCard(${id})">Details</button>${gmBtn}${urlBtn}</div>`;
+  contentHtml+=`<div class="popup-btns"><button class="popup-btn popup-btn-primary" onclick="onDetailClick(${id})">Details</button>${gmBtn}${urlBtn}</div>`;
 
   const popupMaxW = 260;
   const latlng = [r.lat,r.lng];
@@ -4366,6 +4383,31 @@ function selectResort(id, opts){
 function scrollToCard(id){
   const el=document.getElementById("card-"+id);
   if(el) el.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+function isGuideLocaleEn(){
+  if(document.documentElement.lang==="en") return true;
+  if(/-en\.html$/i.test(location.pathname)) return true;
+  try{ if(new URLSearchParams(location.search).get("lang")==="en") return true; }catch(e){}
+  return false;
+}
+
+function getResortGuideUrl(id){
+  if(!resortGuidesData||!resortGuidesData.guides) return null;
+  const g=resortGuidesData.guides[String(id)];
+  if(!g||!g.registryId) return null;
+  const base=(resortGuidesData.baseUrl||GUIDES_BASE_URL).replace(/\/$/,"");
+  const q=isGuideLocaleEn()?"?lang=en":"";
+  return `${base}/${g.registryId}/${q}`;
+}
+
+function onDetailClick(id){
+  const url=getResortGuideUrl(id);
+  if(url){
+    window.open(url,"_blank","noopener,noreferrer");
+    return;
+  }
+  scrollToCard(id);
 }
 
 // 近隣リストをクリックしたとき: 対象を選択しつつ、グループ全体が入るようにマップをフィット
@@ -5556,9 +5598,10 @@ document.getElementById("view-map").style.display="none";
     fetch("data/lift-times.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; }),
     fetch("data/resort-operating.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; }),
     fetch("data/resort-names-en.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; }),
-    fetch("data/jma-prevday-hourly.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; })
+    fetch("data/jma-prevday-hourly.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; }),
+    fetch("data/resort-guides.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; })
   ]).then(function(arr){
-    var obj=arr[0], jma=arr[1], resortSnow=arr[2], liftTimes=arr[3], operating=arr[4], namesEn=arr[5], prevHourly=arr[6];
+    var obj=arr[0], jma=arr[1], resortSnow=arr[2], liftTimes=arr[3], operating=arr[4], namesEn=arr[5], prevHourly=arr[6], guides=arr[7];
     // #region [Resort debug] EN cache loaded
     console.log("[Resort debug] init cache done", { hasWeather: !!obj, hasJma: !!jma, hasResortSnow: !!resortSnow, hasLiftTimes: !!liftTimes, hasOperating: !!operating, hasNamesEn: !!namesEn, hasPrevDayHourly: !!prevHourly });
     // #endregion
@@ -5577,6 +5620,7 @@ document.getElementById("view-map").style.display="none";
     if(resortSnow&&typeof resortSnow==="object"){ resortSnowCache=resortSnow; }
     if(liftTimes&&typeof liftTimes==="object"){ liftTimesCache=liftTimes; }
     if(operating&&typeof operating==="object"){ operatingCache=operating; }
+    if(guides&&guides.guides){ resortGuidesData=guides; }
     if(obj&&typeof obj==="object"){ var n=0; for(var id in obj) if(obj[id]){ weatherCache[id]=obj[id]; n++; } if(n>0){ var el=document.getElementById("fetched-count"); if(el) el.textContent=Object.values(weatherCache).filter(function(v){ return v&&v!=="loading"; }).length; renderTop10(); } }
     renderList();
   })

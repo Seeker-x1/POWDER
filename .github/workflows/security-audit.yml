@@ -18,6 +18,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Verify config UTF-8 encoding
+        run: node .github/scripts/check-config-encoding.cjs
+
       - uses: actions/setup-node@v4
         with:
           node-version: "22"

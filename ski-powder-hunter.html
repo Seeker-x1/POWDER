@@ -83,31 +83,50 @@ header .header-inner{display:flex;align-items:center;justify-content:space-betwe
 .date-btn.active .date-day{color:var(--accent)}
 .date-btn-prev{opacity:.9;cursor:default}
 .date-btn-prev:disabled{pointer-events:none}
-/* 上段日付: デスクトップ=8列グリッド / モバイル=5可視+横スライド — IMPLEMENTATION_ORDER_DATE_SELECTOR_5_SLIDE_OPTION_A.md */
+/* 上段日付: 全幅=横スクロール固定幅チップ（701px+ は8列grid廃止） — IMPLEMENTATION_ORDER_DATE_SELECTOR_5_SLIDE_OPTION_A.md */
 .date-btns-viewport{width:100%;min-width:0;box-sizing:border-box}
 .date-row-flex .date-btns-viewport{flex:1;min-width:0}
 @media (min-width:701px){
-  #date-btns.date-btns-track,#top-date-btns.date-btns-track,#map-date-btns.date-btns-track{
-    display:grid;
-    grid-template-columns:repeat(8,minmax(0,1fr));
-    gap:4px;
-    overflow-x:hidden;
+  /* サイドバー幅に依存しない — 8列grid廃止、横スクロール + 固定幅チップ（0-1a） */
+  .date-btns-viewport{
+    overflow-x:auto;
+    overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;
+    scroll-snap-type:x proximity;
+    scrollbar-width:thin;
     padding-inline:8px;
     box-sizing:border-box;
   }
-  #date-btns .date-btn,#top-date-btns .date-btn,#map-date-btns .date-btn{
+  #date-btns.date-btns-track,#top-date-btns.date-btns-track,#map-date-btns.date-btns-track{
+    display:flex;
+    flex-direction:row;
+    flex-wrap:nowrap;
+    align-items:stretch;
+    gap:4px;
+    width:max-content;
     min-width:0;
+    padding:0;
+    padding-right:12px;
+    box-sizing:border-box;
+    overflow-x:visible;
+  }
+  #date-btns .date-btn,#top-date-btns .date-btn,#map-date-btns .date-btn{
+    flex:0 0 60px;
+    width:60px;
+    min-width:60px;
     height:92px;
-    padding:8px 6px 6px;
+    padding:8px 4px 6px;
     border-radius:12px;
     display:flex;
     flex-direction:column;
     justify-content:space-between;
-    flex:unset;
+    box-sizing:border-box;
+    scroll-snap-align:start;
   }
-  #date-btns .date-btn .date-num,#top-date-btns .date-btn .date-num,#map-date-btns .date-btn .date-num{font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:clip}
-  #date-btns .date-btn .date-day,#top-date-btns .date-btn .date-day,#map-date-btns .date-btn .date-day{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:clip}
-  #date-btns .date-btn .date-snow,#top-date-btns .date-btn .date-snow,#map-date-btns .date-btn .date-snow{font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:clip}
+  #date-btns .date-btn .date-num,#top-date-btns .date-btn .date-num,#map-date-btns .date-btn .date-num{font-size:10px;font-weight:700;line-height:1.2;white-space:nowrap}
+  #date-btns .date-btn .date-day,#top-date-btns .date-btn .date-day,#map-date-btns .date-btn .date-day{font-size:11px;line-height:1.2;white-space:nowrap}
+  #date-btns .date-btn .date-snow,#top-date-btns .date-btn .date-snow,#map-date-btns .date-btn .date-snow{font-size:11px;font-weight:700;line-height:1.2;white-space:nowrap;margin-top:2px}
+  #date-btns .date-btn.date-btn-prev,#top-date-btns .date-btn.date-btn-prev,#map-date-btns .date-btn.date-btn-prev{flex:0 0 72px;width:72px;min-width:72px}
 }
 @media (max-width:700px){
   /* 案A §3.2: コンセプト図どおりビューポート全幅で5可視 — JMAと横並び禁止（IMPLEMENTATION_ORDER_DATE_SELECTOR_5_SLIDE_OPTION_A.md §3.2.3） */

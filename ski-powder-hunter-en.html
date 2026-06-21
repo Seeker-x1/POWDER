@@ -86,7 +86,8 @@ header .header-inner{display:flex;align-items:center;justify-content:space-betwe
 .date-btn-prev:disabled{pointer-events:none}
 /* Date strip: horizontal scroll + fixed chips at all widths (701px+ no 8-col grid) */
 .date-btns-viewport{width:100%;min-width:0;box-sizing:border-box}
-.date-row-flex .date-btns-viewport{flex:1;min-width:0}
+.date-row-flex .date-scroll-affordance{flex:1;min-width:0}
+.date-row-flex .date-scroll-affordance .date-btns-viewport{width:100%;min-width:0}
 @media (min-width:701px){
   /* Sidebar: drop 8-col grid — horizontal scroll + fixed 60px chips (0-1a) */
   .date-btns-viewport{
@@ -137,12 +138,13 @@ header .header-inner{display:flex;align-items:center;justify-content:space-betwe
     flex-wrap:nowrap;
     gap:8px;
   }
-  .date-row-flex .date-btns-viewport{
+  .date-row-flex .date-scroll-affordance{
     order:1;
     width:100%;
     flex:0 0 auto;
     min-width:0;
   }
+  .date-row-flex .date-scroll-affordance .date-btns-viewport{width:100%;min-width:0}
   .date-row-flex .prev-day-jma-chip{
     order:2;
     width:100%;
@@ -846,6 +848,50 @@ header .header-inner{display:flex;align-items:center;justify-content:space-betwe
   border-right:1px solid var(--hairline);
 }
 #map-date-btns.map-date-btns-slot{display:contents}
+/* Phase 0-C: map date strip scroll affordance (fade + ›) */
+#view-map .date-scroll-affordance{
+  position:relative;
+  min-width:0;
+}
+#view-map .date-scroll-affordance::after,
+#view-map .date-scroll-affordance::before{
+  content:"";
+  position:absolute;
+  top:0;
+  bottom:0;
+  width:28px;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity .2s ease;
+  z-index:2;
+}
+#view-map .date-scroll-affordance::after{
+  right:0;
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  padding-right:6px;
+  font-size:16px;
+  font-weight:700;
+  line-height:1;
+  color:rgba(200,212,230,0.78);
+}
+#view-map .date-scroll-affordance::before{
+  left:0;
+  width:18px;
+  background:linear-gradient(270deg,transparent,rgba(11,22,40,0.88) 75%);
+}
+#view-map .date-scroll-affordance--rail::after{
+  background:linear-gradient(90deg,transparent 0%,rgba(10,16,26,0.5) 45%,rgba(10,16,26,0.96) 100%);
+}
+#view-map .date-scroll-affordance--sidebar::after{
+  background:linear-gradient(90deg,transparent 0%,rgba(17,28,45,0.55) 45%,rgba(17,28,45,0.96) 100%);
+}
+#view-map .date-scroll-affordance--overflow:not(.date-scroll-affordance--end)::after{
+  content:"›";
+  opacity:1;
+}
+#view-map .date-scroll-affordance--scrolled::before{opacity:1}
 .date-card{
   flex:0 0 auto;
   min-width:84px;
@@ -1904,9 +1950,11 @@ header .header-inner{display:flex;align-items:center;justify-content:space-betwe
       <button type="button" class="map-filter-btn" id="map-filter-btn" aria-controls="map-search-overlay" aria-expanded="false">Filter</button>
     </div>
   </nav>
-  <div class="date-rail" id="map-date-rail" role="region" aria-label="Date">
-    <span class="date-rail__label">Date</span>
-    <div id="map-date-btns" class="map-date-btns-slot"></div>
+  <div class="date-scroll-affordance date-scroll-affordance--rail" data-date-scroll-wrap>
+    <div class="date-rail" id="map-date-rail" role="region" aria-label="Date">
+      <span class="date-rail__label">Date</span>
+      <div id="map-date-btns" class="map-date-btns-slot"></div>
+    </div>
   </div>
 </div>
 <div class="map-desktop-chrome-float" id="map-desktop-chrome-float">
@@ -1929,8 +1977,10 @@ header .header-inner{display:flex;align-items:center;justify-content:space-betwe
       <div class="date-label">When to go? — Select target date</div>
       <div class="date-row-flex">
         <div class="prev-day-jma-chip" id="prev-day-jma-chip" aria-live="polite"></div>
-        <div class="date-btns-viewport">
-          <div class="date-btns date-btns-track" id="date-btns"></div>
+        <div class="date-scroll-affordance date-scroll-affordance--sidebar" data-date-scroll-wrap>
+          <div class="date-btns-viewport">
+            <div class="date-btns date-btns-track" id="date-btns"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -2495,12 +2545,40 @@ function ensureActiveDateChipVisible(trackId){
   vp.scrollLeft = target;
 }
 
+function updateDateScrollAffordance(){
+  document.querySelectorAll("#view-map [data-date-scroll-wrap]").forEach(function(wrap){
+    const scroller = wrap.querySelector(".date-rail, .date-btns-viewport");
+    if(!scroller) return;
+    const maxScroll = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+    const overflow = maxScroll > 1;
+    const atEnd = scroller.scrollLeft >= maxScroll - 1;
+    const atStart = scroller.scrollLeft <= 1;
+    wrap.classList.toggle("date-scroll-affordance--overflow", overflow);
+    wrap.classList.toggle("date-scroll-affordance--end", overflow && atEnd);
+    wrap.classList.toggle("date-scroll-affordance--scrolled", overflow && !atStart);
+  });
+}
+
+var dateScrollAffordanceBound = false;
+function initDateScrollAffordance(){
+  updateDateScrollAffordance();
+  if(dateScrollAffordanceBound) return;
+  dateScrollAffordanceBound = true;
+  document.querySelectorAll("#view-map [data-date-scroll-wrap]").forEach(function(wrap){
+    const scroller = wrap.querySelector(".date-rail, .date-btns-viewport");
+    if(!scroller) return;
+    scroller.addEventListener("scroll", updateDateScrollAffordance, {passive:true});
+  });
+  window.addEventListener("resize", updateDateScrollAffordance, {passive:true});
+}
+
 function scheduleEnsureDateStripVisible(){
   updateDateStripChipWidths();
   requestAnimationFrame(function(){
     requestAnimationFrame(function(){
       ensureActiveDateChipVisible("date-btns");
       ensureActiveDateChipVisible("map-date-btns");
+      updateDateScrollAffordance();
     });
   });
 }
@@ -2516,12 +2594,17 @@ function initDateStripViewportLayout(){
       requestAnimationFrame(function(){
         ensureActiveDateChipVisible("date-btns");
         ensureActiveDateChipVisible("map-date-btns");
+        updateDateScrollAffordance();
       });
     });
   }
   document.querySelectorAll(".date-btns-viewport, #map-date-rail").forEach(function(vp){
     dateStripResizeObserver.observe(vp);
   });
+  document.querySelectorAll("#view-map [data-date-scroll-wrap]").forEach(function(wrap){
+    dateStripResizeObserver.observe(wrap);
+  });
+  initDateScrollAffordance();
   if(document.fonts && document.fonts.ready){
     document.fonts.ready.then(function(){
       scheduleEnsureDateStripVisible();

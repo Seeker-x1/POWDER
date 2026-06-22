@@ -42,5 +42,5 @@ jobs:
             echo "No changes to weather cache."
           else
             git commit -m "chore: update weather cache [automated]"
-            git push
-          fi
+            git pull --rebase origin main
+            git push origin main

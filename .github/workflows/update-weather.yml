@@ -19,8 +19,10 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
-      - name: Checkout
+      -       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v5
@@ -40,7 +42,12 @@ jobs:
           git add data/weather.json
           if git diff --staged --quiet; then
             echo "No changes to weather cache."
-          else
+                    else
             git commit -m "chore: update weather cache [automated]"
-            git pull --rebase origin main
-            git push origin main
+            for i in 1 2 3 4 5; do
+              git pull --rebase origin main && git push origin main && exit 0
+              echo "Push failed, retry $i/5..."
+              sleep $((i * 5))
+            done
+            exit 1
+          fi

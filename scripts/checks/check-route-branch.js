@@ -12,18 +12,21 @@ const files = ["ski-powder-hunter.html", "ski-powder-hunter-en.html"].map((f) =>
 
 const required = [
   "function openFocusFromRanking",
+  "function openFocusFromMap",
   "opts.focusFromRanking",
   "mobileDetailEntry",
   "useFocusRankingShell",
   "buildFocusViewRankingBlock",
   "!isFocusFromRanking",
+  "!useFocusRankingShell",
   "b-glance__verdict",
   "focus-day-chips",
   "scripts/focus-view-ranking.js",
   "openFocusFromRanking(openResortId)",
+  "openFocusFromMap(r.id)",
 ];
 
-const forbiddenInMarker = /m\.on\("click",\(\)=>selectResort\(r\.id\)\)/;
+const mapMarkerOk = /m\.on\("click",\(\)=>openFocusFromMap\(r\.id\)\)/;
 
 let failed = false;
 
@@ -36,12 +39,16 @@ for (const file of files) {
       failed = true;
     }
   }
-  if (!forbiddenInMarker.test(src)) {
-    console.error(`[FAIL] ${label}: map marker click handler not found (expected map-only selectResort)`);
+  if (!mapMarkerOk.test(src)) {
+    console.error(`[FAIL] ${label}: map marker must call openFocusFromMap(r.id)`);
     failed = true;
   }
   if (/m\.on\("click",\(\)=>openFocusFromRanking/.test(src)) {
     console.error(`[FAIL] ${label}: map marker must not call openFocusFromRanking`);
+    failed = true;
+  }
+  if (/pw-card.*selectResort\(/.test(src)) {
+    console.error(`[FAIL] ${label}: sidebar pw-card must use openFocusFromMap`);
     failed = true;
   }
   if (/top-card.*openFocusFromRanking/.test(src)) {

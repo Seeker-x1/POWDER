@@ -3673,7 +3673,7 @@ function renderList(){
       scoreBadge=`<div class="pw-score-badge"><div style="font-size:10px;color:var(--text-dim);text-align:center">--</div></div>`;
     }
 
-    return`<div class="pw-card${sel?" selected":""}${inSeason?"":" operating-closed"}" id="card-${r.id}" onclick="selectResort(${r.id})">
+    return`<div class="pw-card${sel?" selected":""}${inSeason?"":" operating-closed"}" id="card-${r.id}" onclick="openFocusFromMap(${r.id})">
       <div class="pw-card-header">
         <div>
           <div class="pw-name">${displayNameEn(r)}${inSeason?"":' <span class="badge-closed">Closed</span>'}</div>
@@ -4047,6 +4047,11 @@ function openFocusFromRanking(id, extraOpts){
   const opts = Object.assign({ focusFromRanking: true }, extraOpts || {});
   selectResort(id, opts);
 }
+/** Map pin / sidebar → FocusView_FromMap (012-type; never mix with mock-016 ranking shell) */
+function openFocusFromMap(id, extraOpts){
+  const opts = Object.assign({ focusFromRanking: false }, extraOpts || {});
+  selectResort(id, opts);
+}
 function selectResort(id, opts){
   opts = opts || {};
   const noPan = !!opts.noPan;
@@ -4111,7 +4116,7 @@ function selectResort(id, opts){
       const isActive = i===targetDayOffset;
       const label = popupDayLabelsEn[i];
       const snowText = snowCm!=null && snowCm>0 ? `❄ ${snowCm}cm` : "—";
-      dayStripHtml+=`<button type="button" role="tab" class="popup-day-tab${isActive?" is-active":""}" aria-selected="${isActive}" data-offset="${i}" onclick="setTargetDayOffset(${i});selectResort(${id},{noMove:true});"><div class="popup-day-label">${label}</div><div class="popup-day-snow">${snowText}</div></button>`;
+      dayStripHtml+=`<button type="button" role="tab" class="popup-day-tab${isActive?" is-active":""}" aria-selected="${isActive}" data-offset="${i}" onclick="setTargetDayOffset(${i});openFocusFromMap(${id},{noMove:true});"><div class="popup-day-label">${label}</div><div class="popup-day-snow">${snowText}</div></button>`;
     }
     dayStripHtml+="</div>";
 
@@ -4237,7 +4242,7 @@ function selectResort(id, opts){
   const currentIndex = filtered.findIndex(rr=>rr.id===id);
   const prevId = currentIndex > 0 ? filtered[currentIndex - 1].id : null;
   const nextId = currentIndex >= 0 && currentIndex < filtered.length - 1 ? filtered[currentIndex + 1].id : null;
-  const popupNavHtml = `<div class="popup-nav">${prevId!=null?`<button type="button" class="popup-nav-btn" onclick="selectResort(${prevId},{noMove:true})">← Prev</button>`:""}${nextId!=null?`<button type="button" class="popup-nav-btn" onclick="selectResort(${nextId},{noMove:true})">Next →</button>`:""}</div>`;
+  const popupNavHtml = `<div class="popup-nav">${prevId!=null?`<button type="button" class="popup-nav-btn" onclick="openFocusFromMap(${prevId},{noMove:true})">← Prev</button>`:""}${nextId!=null?`<button type="button" class="popup-nav-btn" onclick="openFocusFromMap(${nextId},{noMove:true})">Next →</button>`:""}</div>`;
   const resortHeadInner = `<div class="popup-name">${displayNameEn(r)}</div>${r.name&&displayNameEn(r)!==r.name ? `<div class="resort-name-signs" title="As on road signs in Japan">As on road signs: ${r.name}</div>` : ""}<div class="popup-pref">${getPrefEn(r.pref)} · TOP ${r.elevation?.top ?? "-"}m</div>`;
   let contentHtml=(isMobilePopup?"":`<button type="button" class="popup-close-btn" onclick="closeResortPopup()">×</button>`)+(useFocusRankingShell?"":popupNavHtml);
   if(isMobilePopup && mobileTopHtml){
@@ -4246,32 +4251,30 @@ function selectResort(id, opts){
   } else {
     contentHtml+=resortHeadInner;
   }
-  if(operating){
-    const periodStr = formatOperatingPeriod(operating.open, operating.close);
-    contentHtml+=`<div class="popup-detail-row popup-operating-row">📅 Operating <strong>${periodStr}</strong>${!inSeason?' <span class="badge-closed">Closed</span>':""}</div>`;
-  }
-  if(liftStart){
-    contentHtml+=`<div class="popup-detail-row popup-lift-row" title="${LIFT_DISCLAIMER}">🕐 Lift <strong>${liftStart}</strong><span class="popup-lift-note" title="${LIFT_DISCLAIMER}">*</span></div>`;
-  }
-  if(ps){
-    const sw=ps.summitWind;
-    const tempMin=Math.round(daily.temperature_2m_min[getDayIndex(daily,targetDayOffset)]??0);
-    const tempMax=Math.round(daily.temperature_2m_max[getDayIndex(daily,targetDayOffset)]??0);
-    const snowDisplay = getSnowfallForDisplay(id, targetDayOffset);
-    const snowCm = snowDisplay.cm!=null ? Math.round(snowDisplay.cm) : null;
-    const snowNote = snowDisplay.fromNearby ? " <span class=\"snow-depth-source\">(from nearby forecast)</span>" : "";
-    const wdq=windDirQuality(sw.summitDir, r.region);
-    const wDir=windDir(sw.summitDir);
-    const gust=daily.wind_gusts_10m_max?.[getDayIndex(daily,targetDayOffset)];
-    const summitGust=gust?Math.round(gust*Math.pow(Math.max(sw.elev,10)/10,0.2)):null;
-    const jma = jmaSnowCache[id];
-    const depthDisplay = getDisplaySnowDepth(id, jma, daily, r);
-    const snowDepthCm = depthDisplay.depthCm;
-    const snowDepthTitle = depthDisplay.sourceTitle || "Model snow depth";
-    if(isMobilePopup && useFocusRankingShell){
-      contentHtml+=`
-      <div class="popup-pw"><div class="popup-pw-num" style="color:${scoreColor(ps.score)}">${ps.score}</div><div class="popup-pw-label" style="color:${scoreColor(ps.score)}">${scoreGrade(ps.score)}</div></div>`;
-    } else {
+  /* FocusView_FromMap (012-type) only — ranking path is mock-016 .device-screen only */
+  if(!useFocusRankingShell){
+    if(operating){
+      const periodStr = formatOperatingPeriod(operating.open, operating.close);
+      contentHtml+=`<div class="popup-detail-row popup-operating-row">📅 Operating <strong>${periodStr}</strong>${!inSeason?' <span class="badge-closed">Closed</span>':""}</div>`;
+    }
+    if(liftStart){
+      contentHtml+=`<div class="popup-detail-row popup-lift-row" title="${LIFT_DISCLAIMER}">🕐 Lift <strong>${liftStart}</strong><span class="popup-lift-note" title="${LIFT_DISCLAIMER}">*</span></div>`;
+    }
+    if(ps){
+      const sw=ps.summitWind;
+      const tempMin=Math.round(daily.temperature_2m_min[getDayIndex(daily,targetDayOffset)]??0);
+      const tempMax=Math.round(daily.temperature_2m_max[getDayIndex(daily,targetDayOffset)]??0);
+      const snowDisplay = getSnowfallForDisplay(id, targetDayOffset);
+      const snowCm = snowDisplay.cm!=null ? Math.round(snowDisplay.cm) : null;
+      const snowNote = snowDisplay.fromNearby ? " <span class=\"snow-depth-source\">(from nearby forecast)</span>" : "";
+      const wdq=windDirQuality(sw.summitDir, r.region);
+      const wDir=windDir(sw.summitDir);
+      const gust=daily.wind_gusts_10m_max?.[getDayIndex(daily,targetDayOffset)];
+      const summitGust=gust?Math.round(gust*Math.pow(Math.max(sw.elev,10)/10,0.2)):null;
+      const jma = jmaSnowCache[id];
+      const depthDisplay = getDisplaySnowDepth(id, jma, daily, r);
+      const snowDepthCm = depthDisplay.depthCm;
+      const snowDepthTitle = depthDisplay.sourceTitle || "Model snow depth";
       contentHtml+=`
       <div class="popup-pw"><div class="popup-pw-num" style="color:${scoreColor(ps.score)}">${ps.score}</div><div class="popup-pw-label" style="color:${scoreColor(ps.score)}">${scoreGrade(ps.score)}</div></div>
       <div class="popup-detail-row">❄️ Forecast snow <strong>${snowCm!=null?snowCm+"cm":"—"}${snowNote}</strong></div>
@@ -4290,35 +4293,35 @@ function selectResort(id, opts){
       </div>
       <div class="popup-detail-row">🌡️ Min/Max temp <strong>${tempMin}°C / ${tempMax}°C</strong> ${qualityBadge(ps)}</div>`+
       (isMobilePopup ? "" : buildPopupHourlyTempChartHtml(daily, targetDayOffset, { caption: "Hourly temperature for selected day (Open-Meteo)" }));
+    } else if(daily==="loading"){
+      contentHtml+=`<div class="loading-row"><div class="loading-spinner"></div>Fetching…</div>`;
+    } else {
+      contentHtml+=`<div style="font-size:11px;color:var(--text-dim);margin:6px 0">No data — click to fetch</div>`;
+      fetchWeather(r).then(()=>renderList());
     }
-  } else if(daily==="loading"){
-    contentHtml+=`<div class="loading-row"><div class="loading-spinner"></div>Fetching…</div>`;
-  } else {
-    contentHtml+=`<div style="font-size:11px;color:var(--text-dim);margin:6px 0">No data — click to fetch</div>`;
-    fetchWeather(r).then(()=>renderList());
-  }
 
-  if(nearbyList.length>0){
-    contentHtml+=`<details class="popup-nearby popup-nearby-collapse"><summary class="popup-nearby-summary">Nearby by car (today's forecast) · ${nearbyList.length}</summary><div class="popup-nearby-inner">`;
-    nearbyList.forEach(function(n){
-      const other=RESORT_MAP[n.id];
-      const name=other?displayNameEn(other):"?";
-      let snowTxt="--";
-      if(other){
-        const snowD = getSnowfallForDisplay(other.id, targetDayOffset);
-        if(snowD.cm!=null) snowTxt=`${Math.round(snowD.cm)}cm${snowD.fromNearby?" (nearby)":""}`;
-      }
-      const groupIds = [id].concat(nearbyList.map(x=>x.id));
-      contentHtml+=`<div class="popup-nearby-item" onclick="selectResortGroup(${n.id},[${groupIds.join(",")}])"><span>${name}</span><span>${snowTxt} · ~${n.km}km</span></div>`;
-    });
-    contentHtml+=`</div></details>`;
+    if(nearbyList.length>0){
+      contentHtml+=`<details class="popup-nearby popup-nearby-collapse"><summary class="popup-nearby-summary">Nearby by car (today's forecast) · ${nearbyList.length}</summary><div class="popup-nearby-inner">`;
+      nearbyList.forEach(function(n){
+        const other=RESORT_MAP[n.id];
+        const name=other?displayNameEn(other):"?";
+        let snowTxt="--";
+        if(other){
+          const snowD = getSnowfallForDisplay(other.id, targetDayOffset);
+          if(snowD.cm!=null) snowTxt=`${Math.round(snowD.cm)}cm${snowD.fromNearby?" (nearby)":""}`;
+        }
+        const groupIds = [id].concat(nearbyList.map(x=>x.id));
+        contentHtml+=`<div class="popup-nearby-item" onclick="selectResortGroup(${n.id},[${groupIds.join(",")}])"><span>${name}</span><span>${snowTxt} · ~${n.km}km</span></div>`;
+      });
+      contentHtml+=`</div></details>`;
+    }
+    contentHtml+=`<div class="popup-nearby popup-partner-shop"><div class="popup-nearby-title">Partner shop</div><a class="popup-nearby-item" href="${PARTNER_SHOP.url}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:4px 6px;border-radius:6px;"><span>${PARTNER_SHOP.nameEn}</span><span style="color:var(--accent);font-size:10px">Map ↗</span></a></div>`;
+    const urlBtn=r.url?`<a class="popup-btn popup-btn-secondary" href="${r.url}" target="_blank">Official ↗</a>`:"";
+    const gmUrl=`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(displayNameEn(r))}&query_place_id=&center=${r.lat},${r.lng}`;
+    const gmBtn=`<a class="popup-btn popup-btn-secondary" href="${gmUrl}" target="_blank">Google Maps ↗</a>`;
+    contentHtml+=`<div class="popup-feedback"><button class="popup-feedback-btn" onclick="openFeedback('closed',${id})">Was closed / lifts stopped</button><button class="popup-feedback-btn" onclick="openFeedback('low-snow',${id})">Much less snow than shown</button></div>`;
+    contentHtml+=`<div class="popup-btns"><button class="popup-btn popup-btn-primary" onclick="onDetailClick(${id})">Details</button>${gmBtn}${urlBtn}</div>`;
   }
-  contentHtml+=`<div class="popup-nearby popup-partner-shop"><div class="popup-nearby-title">Partner shop</div><a class="popup-nearby-item" href="${PARTNER_SHOP.url}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:4px 6px;border-radius:6px;"><span>${PARTNER_SHOP.nameEn}</span><span style="color:var(--accent);font-size:10px">Map ↗</span></a></div>`;
-  const urlBtn=r.url?`<a class="popup-btn popup-btn-secondary" href="${r.url}" target="_blank">Official ↗</a>`:"";
-  const gmUrl=`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(displayNameEn(r))}&query_place_id=&center=${r.lat},${r.lng}`;
-  const gmBtn=`<a class="popup-btn popup-btn-secondary" href="${gmUrl}" target="_blank">Google Maps ↗</a>`;
-  contentHtml+=`<div class="popup-feedback"><button class="popup-feedback-btn" onclick="openFeedback('closed',${id})">Was closed / lifts stopped</button><button class="popup-feedback-btn" onclick="openFeedback('low-snow',${id})">Much less snow than shown</button></div>`;
-  contentHtml+=`<div class="popup-btns"><button class="popup-btn popup-btn-primary" onclick="onDetailClick(${id})">Details</button>${gmBtn}${urlBtn}</div>`;
 
   const popupMaxW = 260;
   const latlng = [r.lat,r.lng];
@@ -5172,7 +5175,7 @@ function createMarker(r){
   const html=`<div class="custom-marker${selClass}"><div class="m-pin" style="background:${c}22;border-color:${c}66"><span class="m-pin-inner${narrowClass}" style="color:${c}">${lbl}</span></div><span class="m-snow" style="color:${c}">cm</span></div>`;
   const icon=L.divIcon({html,className:"",iconSize:[iw,ih],iconAnchor:[iax,iay]});
   const m=L.marker([r.lat,r.lng],{icon});
-  m.on("click",()=>selectResort(r.id));
+  m.on("click",()=>openFocusFromMap(r.id));
   return m;
 }
 

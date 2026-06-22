@@ -1676,7 +1676,8 @@ header .header-inner{display:flex;align-items:center;justify-content:space-betwe
     outline:2px solid var(--accent);
     outline-offset:2px;
   }
-  #map-detail-sheet .map-focus-screen .b-glance{
+  #map-detail-sheet .map-focus-screen .b-glance,
+  #map-detail-sheet .map-detail-sheet__scroller .b-glance--frommap{
     display:flex;
     align-items:stretch;
     gap:0;
@@ -1688,14 +1689,19 @@ header .header-inner{display:flex;align-items:center;justify-content:space-betwe
     overflow:hidden;
   }
   #map-detail-sheet .map-focus-screen .b-glance[hidden]{display:none!important}
-  #map-detail-sheet .map-focus-screen .b-glance__signal{
+  #map-detail-sheet .map-focus-screen .b-glance__signal,
+  #map-detail-sheet .b-glance--frommap .b-glance__signal{
     flex:0 0 4px;
     background:var(--signal-caution);
   }
-  #map-detail-sheet .map-focus-screen .b-glance--go .b-glance__signal{background:var(--signal-go)}
-  #map-detail-sheet .map-focus-screen .b-glance--caution .b-glance__signal{background:var(--signal-caution)}
-  #map-detail-sheet .map-focus-screen .b-glance--nogo .b-glance__signal{background:var(--signal-nogo)}
-  #map-detail-sheet .map-focus-screen .b-glance__body{
+  #map-detail-sheet .map-focus-screen .b-glance--go .b-glance__signal,
+  #map-detail-sheet .b-glance--frommap.b-glance--go .b-glance__signal{background:var(--signal-go)}
+  #map-detail-sheet .map-focus-screen .b-glance--caution .b-glance__signal,
+  #map-detail-sheet .b-glance--frommap.b-glance--caution .b-glance__signal{background:var(--signal-caution)}
+  #map-detail-sheet .map-focus-screen .b-glance--nogo .b-glance__signal,
+  #map-detail-sheet .b-glance--frommap.b-glance--nogo .b-glance__signal{background:var(--signal-nogo)}
+  #map-detail-sheet .map-focus-screen .b-glance__body,
+  #map-detail-sheet .b-glance--frommap .b-glance__body{
     flex:1;
     min-width:0;
     padding:12px 14px;
@@ -1704,14 +1710,16 @@ header .header-inner{display:flex;align-items:center;justify-content:space-betwe
     align-items:flex-start;
     gap:8px;
   }
-  #map-detail-sheet .map-focus-screen .b-glance__main{
+  #map-detail-sheet .map-focus-screen .b-glance__main,
+  #map-detail-sheet .b-glance--frommap .b-glance__main{
     flex:1;
     min-width:0;
     display:flex;
     flex-direction:column;
     align-items:flex-start;
   }
-  #map-detail-sheet .map-focus-screen .b-glance__verdict{
+  #map-detail-sheet .map-focus-screen .b-glance__verdict,
+  #map-detail-sheet .b-glance--frommap .b-glance__verdict{
     font-size:18px;
     font-weight:700;
     line-height:1.25;
@@ -1719,10 +1727,14 @@ header .header-inner{display:flex;align-items:center;justify-content:space-betwe
     margin:0 0 4px;
     order:1;
   }
-  #map-detail-sheet .map-focus-screen .b-glance--go .b-glance__verdict{color:var(--signal-go)}
-  #map-detail-sheet .map-focus-screen .b-glance--caution .b-glance__verdict{color:var(--signal-caution)}
-  #map-detail-sheet .map-focus-screen .b-glance--nogo .b-glance__verdict{color:var(--signal-nogo)}
-  #map-detail-sheet .map-focus-screen .b-glance__detail{
+  #map-detail-sheet .map-focus-screen .b-glance--go .b-glance__verdict,
+  #map-detail-sheet .b-glance--frommap.b-glance--go .b-glance__verdict{color:var(--signal-go)}
+  #map-detail-sheet .map-focus-screen .b-glance--caution .b-glance__verdict,
+  #map-detail-sheet .b-glance--frommap.b-glance--caution .b-glance__verdict{color:var(--signal-caution)}
+  #map-detail-sheet .map-focus-screen .b-glance--nogo .b-glance__verdict,
+  #map-detail-sheet .b-glance--frommap.b-glance--nogo .b-glance__verdict{color:var(--signal-nogo)}
+  #map-detail-sheet .map-focus-screen .b-glance__detail,
+  #map-detail-sheet .b-glance--frommap .b-glance__detail{
     font-size:11px;
     color:var(--muted-caption);
     line-height:1.4;
@@ -1730,11 +1742,13 @@ header .header-inner{display:flex;align-items:center;justify-content:space-betwe
     order:2;
     width:100%;
   }
-  #map-detail-sheet .map-focus-screen .b-glance__detail .l2-v{
+  #map-detail-sheet .map-focus-screen .b-glance__detail .l2-v,
+  #map-detail-sheet .b-glance--frommap .b-glance__detail .l2-v{
     font-size:11px;
     font-weight:700;
   }
-  #map-detail-sheet .map-focus-screen .b-glance__badge{
+  #map-detail-sheet .map-focus-screen .b-glance__badge,
+  #map-detail-sheet .b-glance--frommap .b-glance__badge{
     font-size:11px;
     font-weight:700;
     padding:4px 8px;
@@ -4507,7 +4521,20 @@ function selectResort(id, opts){
       hourlyHtml+='</div>';
     }
     const tempChartMobile = buildPopupHourlyTempChartHtml(daily, targetDayOffset, { caption: "選択日の気温（1時間ごと・Open-Meteo）" });
-    mobileTopHtml = dayStripHtml + summaryHtml + hourlyHtml + tempChartMobile;
+    let glanceFromMapHtml = "";
+    if(typeof FocusViewRanking !== "undefined" && FocusViewRanking.buildFromMapGlanceHtml){
+      const langFm = (document.documentElement.getAttribute("lang") || "ja").toLowerCase();
+      const isJaFm = langFm.indexOf("ja") === 0;
+      glanceFromMapHtml = FocusViewRanking.buildFromMapGlanceHtml(targetDayOffset, daily, r, isJaFm, {
+        getSnowfallForDisplay: getSnowfallForDisplay,
+        getSnowfallAdjusted: getSnowfallAdjusted,
+        getPrevDayDisplayForResort: getPrevDayDisplayForResort,
+        calcPowderScore: calcPowderScore,
+        getDayIndex: getDayIndex,
+        targetDayOffset: targetDayOffset,
+      });
+    }
+    mobileTopHtml = glanceFromMapHtml + dayStripHtml + hourlyHtml;
   }
 
   const LIFT_DISCLAIMER = "正確な時間は公式HP・お問い合わせでご確認ください";
@@ -4529,6 +4556,13 @@ function selectResort(id, opts){
   }
   /* FocusView_FromMap（012 型）のみ — ランキング経路は mock-016 .device-screen のみ（混在禁止） */
   if(!useFocusRankingShell){
+    const isFromMapMobileSheet = isMobilePopup && !isFocusFromRanking;
+    const urlBtn=r.url?`<a class="popup-btn popup-btn-secondary" href="${r.url}" target="_blank">公式 ↗</a>`:"";
+    const gmUrl=`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.name)}&query_place_id=&center=${r.lat},${r.lng}`;
+    const gmBtn=`<a class="popup-btn popup-btn-secondary" href="${gmUrl}" target="_blank">Googleマップ ↗</a>`;
+    if(isFromMapMobileSheet){
+      contentHtml+=`<div class="popup-btns"><button class="popup-btn popup-btn-primary" onclick="onDetailClick(${id})">詳細確認</button>${gmBtn}${urlBtn}</div>`;
+    } else {
     if(operating){
       const periodStr = formatOperatingPeriod(operating.open, operating.close);
       contentHtml+=`<div class="popup-detail-row popup-operating-row">📅 営業期間 <strong>${periodStr}</strong>${!inSeason?' <span class="badge-closed">営業期間外</span>':""}</div>`;
@@ -4567,8 +4601,7 @@ function selectResort(id, opts){
         ${summitGust?`<div style="font-size:10px;color:var(--text-dim)">山頂瞬間最大推定 <strong style="color:var(--accent2)">${summitGust}km/h</strong></div>`:""}
         ${wdq?`<div style="margin-top:3px"><span style="font-size:10px;font-weight:700;color:${wdq.color}">${wdq.label}</span> <span style="font-size:10px;color:var(--text-dim)">${wdq.hint}</span></div>`:""}
       </div>
-      <div class="popup-detail-row">🌡️ 最低/最高気温 <strong>${tempMin}°C / ${tempMax}°C</strong> ${qualityBadge(ps)}</div>`+
-      (isMobilePopup ? "" : buildPopupHourlyTempChartHtml(daily, targetDayOffset, { caption: "選択日の気温（1時間ごと・Open-Meteo）" }));
+      <div class="popup-detail-row">🌡️ 最低/最高気温 <strong>${tempMin}°C / ${tempMax}°C</strong> ${qualityBadge(ps)}</div>`;
     } else if(daily==="loading"){
       contentHtml+=`<div class="loading-row"><div class="loading-spinner"></div>データ取得中…</div>`;
     } else {
@@ -4576,7 +4609,7 @@ function selectResort(id, opts){
       fetchWeather(r).then(()=>renderList());
     }
 
-    if(nearbyList.length>0){
+    if(nearbyList.length>0 && isMobilePopup){
       contentHtml+=`<div class="popup-nearby" id="popup-nearby-section"><div class="popup-nearby-header" onclick="togglePopupNearby()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')togglePopupNearby()">車で近いゲレンデ（今日の予報）<span class="popup-nearby-chevron" aria-hidden="true">▼</span></div><div class="popup-nearby-body">`;
       nearbyList.forEach(function(n){
         const other=RESORT_MAP[n.id];
@@ -4591,14 +4624,14 @@ function selectResort(id, opts){
       });
       contentHtml+=`</div></div>`;
     }
-    if(r.region==="hokkaido"){
+    if(r.region==="hokkaido" && isMobilePopup){
       contentHtml+=`<div class="popup-nearby popup-partner-shop"><div class="popup-nearby-title">おすすめショップ</div><a class="popup-nearby-item" href="${PARTNER_SHOP.url}" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:4px 6px;border-radius:6px;"><span>${PARTNER_SHOP.name}</span><span style="color:var(--accent);font-size:10px">地図 ↗</span></a></div>`;
     }
-    const urlBtn=r.url?`<a class="popup-btn popup-btn-secondary" href="${r.url}" target="_blank">公式 ↗</a>`:"";
-    const gmUrl=`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.name)}&query_place_id=&center=${r.lat},${r.lng}`;
-    const gmBtn=`<a class="popup-btn popup-btn-secondary" href="${gmUrl}" target="_blank">Googleマップ ↗</a>`;
+    if(isMobilePopup){
     contentHtml+=`<div class="popup-feedback"><button class="popup-feedback-btn" onclick="openFeedback('closed',${id})">営業してなかった</button><button class="popup-feedback-btn" onclick="openFeedback('low-snow',${id})">積雪がもっと少なかった</button></div>`;
+    }
     contentHtml+=`<div class="popup-btns"><button class="popup-btn popup-btn-primary" onclick="onDetailClick(${id})">詳細確認</button>${gmBtn}${urlBtn}</div>`;
+    }
   }
   if(isMobilePopup && useFocusRankingShell){
     contentHtml = mobileTopHtml || contentHtml;

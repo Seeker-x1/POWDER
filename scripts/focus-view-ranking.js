@@ -15,6 +15,14 @@
   var BADGE_FG = "#ffebeb";
   var BADGE_BG = "rgba(122, 46, 46, 0.92)";
 
+  /** snow-data v1 — glance 判定閾値（変更は handoff snow-data.md と同期） */
+  var GLANCE_THRESHOLDS = {
+    SCORE_NOGO: 35,
+    SCORE_CAUTION: 55,
+    RAIN_WET: 0.3,
+    RAIN_DOMINANT: 0.7,
+  };
+
   function escapeAttr(s) {
     return String(s || "")
       .replace(/&/g, "&amp;")
@@ -50,7 +58,7 @@
   }
 
   /**
-   * Glance verdict from powder score + rain (snow-data 確定前の暫定 3 状態).
+   * Glance verdict from powder score + rain (snow-data v1).
    */
   function computeGlanceState(dayOffset, daily, r, isJa, helpers) {
     var h = helpers || {};
@@ -85,14 +93,14 @@
       var totalMm = snowMmDay + rainMmDay;
       if (totalMm > 0) {
         var ratio = rainMmDay / totalMm;
-        if (ratio > 0.7) rainLevel = 2;
-        else if (ratio > 0.3) rainLevel = 1;
+        if (ratio > GLANCE_THRESHOLDS.RAIN_DOMINANT) rainLevel = 2;
+        else if (ratio > GLANCE_THRESHOLDS.RAIN_WET) rainLevel = 1;
       }
     }
 
     var level = "go";
-    if (score < 35 || rainLevel >= 2) level = "nogo";
-    else if (score < 55 || rainLevel >= 1) level = "caution";
+    if (score < GLANCE_THRESHOLDS.SCORE_NOGO || rainLevel >= 2) level = "nogo";
+    else if (score < GLANCE_THRESHOLDS.SCORE_CAUTION || rainLevel >= 1) level = "caution";
 
     var dayLabels = isJa
       ? ["今日", "明日", "明後日", "+3日", "+4日"]
@@ -145,6 +153,34 @@
       badgeText: badgeText,
       rainLevel: rainLevel,
     };
+  }
+
+  /**
+   * S-4: FromMap モバイルシート用 glance 一行（016 シェルは使わない）。
+   */
+  function buildFromMapGlanceHtml(dayOffset, daily, r, isJa, helpers) {
+    var state = computeGlanceState(dayOffset, daily, r, isJa, helpers);
+    if (!state) return "";
+    var badge = state.showRain && state.badgeText
+      ? '<span class="b-glance__badge">' + escapeAttr(state.badgeText) + "</span>"
+      : '<span class="b-glance__badge" hidden></span>';
+    return (
+      '<div class="b-glance b-glance--frommap b-glance--' +
+      state.level +
+      '" aria-live="polite">' +
+      '<div class="b-glance__signal" aria-hidden="true"></div>' +
+      '<div class="b-glance__body">' +
+      '<div class="b-glance__main">' +
+      '<p class="b-glance__verdict">' +
+      escapeAttr(state.verdict) +
+      "</p>" +
+      '<p class="b-glance__detail">' +
+      state.detailHtml +
+      "</p>" +
+      "</div>" +
+      badge +
+      "</div></div>"
+    );
   }
 
   function applyGlanceToDom(glanceEl, state) {
@@ -252,7 +288,9 @@
     SIGNAL: SIGNAL,
     BADGE_FG: BADGE_FG,
     BADGE_BG: BADGE_BG,
+    GLANCE_THRESHOLDS: GLANCE_THRESHOLDS,
     buildSlotAriaLabel: buildSlotAriaLabel,
+    buildFromMapGlanceHtml: buildFromMapGlanceHtml,
     computeGlanceState: computeGlanceState,
     applyGlanceToDom: applyGlanceToDom,
     initDayChipTabs: initDayChipTabs,

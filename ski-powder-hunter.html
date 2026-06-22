@@ -2351,6 +2351,13 @@ const weatherJsonLoadPromise=fetch("data/weather.json").then(function(r){
 });
 let jmaSnowCache = {};     // id -> { depth_cm, station_name, observed_at }（気象庁・日1回取得の積雪）
 let jmaMeshSnowCache = {}; // resortId -> { cm, at }（JMAメッシュ推定・将来拡張）
+let resortSnowMetadata = {}; // id -> { snow_lat, snow_lng, snow_repr_elev_m }
+let resortSnowPublishedIds = new Set();
+let jmaMeshLut = null;
+let jmaMeshRefreshInFlight = false;
+const jmaMeshSampleCanvas = document.createElement("canvas");
+jmaMeshSampleCanvas.width = 256;
+jmaMeshSampleCanvas.height = 256;
 let elevationSnowFactors = null;
 /** 気象庁・前日(JSTカレンダー)実績: 降水㎜+気温℃から降雪相当cmへ換算するルール（全画面共通） */
 const JMA_PREV_SNOW_RULE_TITLE_JA = "気象庁の1時間降水量(㎜)と気温(℃)から降雪相当(cm)を推計。4℃以上は降雨のみ、0〜4℃は線形補間、0℃以下は1mm降水≈1cm新雪相当。";
@@ -2826,6 +2833,30 @@ function initTopDateButtons(){
   syncTopToolbarAreaLabel();
 }
 
+// ─── Resort snow representative coords / elevation ─────────────
+function resortSnowMetaEntry(resort){
+  if(!resort) return {};
+  const e = resortSnowMetadata[String(resort.id)];
+  return e && typeof e === "object" ? e : {};
+}
+function resortSnowLat(resort){
+  const e = resortSnowMetaEntry(resort);
+  return typeof e.snow_lat === "number" ? e.snow_lat : resort.lat;
+}
+function resortSnowLng(resort){
+  const e = resortSnowMetaEntry(resort);
+  return typeof e.snow_lng === "number" ? e.snow_lng : resort.lng;
+}
+function resortSnowReprElevM(resort){
+  const e = resortSnowMetaEntry(resort);
+  if(typeof e.snow_repr_elev_m === "number" && Number.isFinite(e.snow_repr_elev_m)) return e.snow_repr_elev_m;
+  const top = resort.elevation?.top;
+  return typeof top === "number" && Number.isFinite(top) ? top : 0;
+}
+function usePublishedSnow(resortId){
+  return resortSnowPublishedIds.has(Number(resortId));
+}
+
 // ─── Open-Meteo fetch ──────────────────────────────────────────
 function fetchWeather(resort){
   return weatherJsonLoadPromise.then(function(){
@@ -2833,11 +2864,14 @@ function fetchWeather(resort){
     if(weatherCache[resort.id]==="loading") return Promise.resolve(null);
     weatherCache[resort.id]="loading";
 
+    const slat = resortSnowLat(resort);
+    const slng = resortSnowLng(resort);
+    const selev = resortSnowReprElevM(resort);
     const useOwnApi = typeof SNOW_API_BASE==="string"&&SNOW_API_BASE.length>0;
     const url = useOwnApi
-      ? `${SNOW_API_BASE.replace(/\/$/,"")}/api/forecast?lat=${resort.lat}&lng=${resort.lng}`
-      : `https://api.open-meteo.com/v1/forecast?latitude=${resort.lat}&longitude=${resort.lng}`+
-        (resort.elevation?.top != null ? `&elevation=${resort.elevation.top}` : "")+
+      ? `${SNOW_API_BASE.replace(/\/$/,"")}/api/forecast?lat=${slat}&lng=${slng}${selev>0?`&elevation=${Math.round(selev)}`:""}`
+      : `https://api.open-meteo.com/v1/forecast?latitude=${slat}&longitude=${slng}`+
+        (selev>0 ? `&elevation=${Math.round(selev)}` : "")+
         `&daily=snowfall_sum,wind_speed_10m_max,wind_direction_10m_dominant,wind_gusts_10m_max,temperature_2m_min,temperature_2m_max,precipitation_hours`+
         `&hourly=wind_speed_850hPa,wind_direction_850hPa,snowfall,snow_depth,precipitation_probability,rain,precipitation,temperature_2m`+
         `&past_days=1&forecast_days=7&timezone=Asia%2FTokyo`;
@@ -2990,8 +3024,8 @@ function windDirQuality(deg, region){
 // ─── 標高補正（A: 山頂付近は降雪多めに換算）────────────────────
 const ELEVATION_SNOW_FACTORS_DEFAULT = { base_m: 500, factor_per_m: 0.00025, max: 1.5 };
 function elevationFactor(resort){
-  const top = resort.elevation?.top;
-  if(top==null||top===undefined) return 1;
+  const top = resortSnowReprElevM(resort);
+  if(top==null||top===undefined||top===0) return 1;
   const cfg = elevationSnowFactors || {};
   const def = cfg.default || ELEVATION_SNOW_FACTORS_DEFAULT;
   const regionCfg = (cfg.by_region && resort.region && cfg.by_region[resort.region]) ? cfg.by_region[resort.region] : {};
@@ -3319,7 +3353,7 @@ function windDir(deg){
 
 // 現在の積雪表示用: ゲレンデ公表優先 > 気象庁 > モデル（公表値を入れている場合はその値を表示）
 function getDisplaySnowDepth(resortId, jma, daily, resort){
-  if(USE_RESORT_PUBLISHED_SNOW){
+  if(usePublishedSnow(resortId)){
     const rs = resortSnowCache[resortId];
     if(rs&&rs.depth_cm!=null) return { depthCm: rs.depth_cm, sourceLabel: "ゲレンデ公表", sourceTitle: "ゲレンデ公式発表"+(rs.updated_at?"（"+rs.updated_at+"）":"")+"。※"+GELENDE_SNOW_NOTE };
     if(resort&&resort.snowDepth!=null) return { depthCm: resort.snowDepth, sourceLabel: "ゲレンデ公表", sourceTitle: "ゲレンデ公式（RESORTSの値）。※"+GELENDE_SNOW_NOTE };
@@ -3331,7 +3365,7 @@ function getDisplaySnowDepth(resortId, jma, daily, resort){
   return { depthCm: null, sourceLabel: null, sourceTitle: null };
 }
 function getDepthForRanking(resortId, jma, daily, resort){
-  if(USE_RESORT_PUBLISHED_SNOW){
+  if(usePublishedSnow(resortId)){
     const rs = resortSnowCache[resortId];
     if(rs&&rs.depth_cm!=null) return rs.depth_cm;
     if(resort&&resort.snowDepth!=null) return resort.snowDepth;
@@ -4986,6 +5020,7 @@ function mountJmaSnowLayerFromTimeStr(kind, timeStr){
       minNativeZoom:JMA_TILE_NATIVE_MIN
     });
   }
+  refreshJmaMeshSnowCache(kind, timeStr);
   return jmaSnowLayer;
 }
 /** ストレージ即表示後、最新時刻へ差し替え */
@@ -5031,6 +5066,7 @@ function refreshJmaSnowTimeInBackground(kind){
       const urlPattern = buildJmaSnowTileUrl(myKind, latest);
       if(urlPattern) jmaSnowLayer.setUrl(urlPattern);
       writeJmaSnowStoredTime(myKind, latest);
+      refreshJmaMeshSnowCache(myKind, latest);
       // #region agent log
       try{
         fetch("http://127.0.0.1:7504/ingest/7a45a88b-734e-4e06-9139-2646ed4e0f41",{method:"POST",headers:{"Content-Type":"application/json","X-Debug-Session-Id":"e56e9e"},body:JSON.stringify({sessionId:"e56e9e",location:"ski-powder-hunter.html:refreshJmaSnowTimeInBackground",message:"jma bg refresh applied new timeStr",data:{kind:myKind,prev,latest,elapsedMs:Date.now()-t0},timestamp:Date.now(),hypothesisId:"H-instant"})}).catch(function(){});
@@ -5103,6 +5139,99 @@ function latLngToTileXY(lat, lng, z){
   const latRad = lat * Math.PI / 180;
   const y = Math.floor((1 - (Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI)) / 2 * n);
   return { x, y };
+}
+
+function latLngToTilePixel(lat, lng, z, tileX, tileY){
+  const n = Math.pow(2, z);
+  const xf = ((lng + 180) / 360) * n;
+  const latRad = lat * Math.PI / 180;
+  const yf = (1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n;
+  const px = Math.floor((xf - tileX) * 256);
+  const py = Math.floor((yf - tileY) * 256);
+  return { px: Math.max(0, Math.min(255, px)), py: Math.max(0, Math.min(255, py)) };
+}
+
+function jmaMeshStopsForKind(kind){
+  if(!jmaMeshLut || !jmaMeshLut.kinds) return [];
+  const k = jmaMeshLut.kinds[kind];
+  return k && Array.isArray(k.stops) ? k.stops : [];
+}
+
+function decodeJmaMeshPixel(r, g, b, a, kind){
+  const stops = jmaMeshStopsForKind(kind);
+  if(!stops.length) return null;
+  if(a < 100) return null;
+  if(jmaMeshLut.nodata){
+    for(const nd of jmaMeshLut.nodata){
+      if(r===nd.r && g===nd.g && b===nd.b) return null;
+    }
+  }
+  let best = null, bestD = Infinity;
+  for(const s of stops){
+    const dr = r - s.r, dg = g - s.g, db = b - s.b;
+    const d = dr*dr + dg*dg + db*db;
+    if(d < bestD){ bestD = d; best = s; }
+  }
+  const maxD = Math.pow(jmaMeshLut.max_rgb_dist || 55, 2);
+  if(!best || bestD > maxD) return null;
+  return best.cm;
+}
+
+async function sampleJmaMeshSnowCm(lat, lng, kind, timeStr){
+  const z = JMA_TILE_NATIVE_MAX;
+  const { x, y } = latLngToTileXY(lat, lng, z);
+  const url = buildJmaSnowTileUrlFromXY(kind, timeStr, z, x, y);
+  if(!url) return null;
+  try{
+    const img = await new Promise(function(resolve, reject){
+      const im = new Image();
+      im.crossOrigin = "anonymous";
+      im.onload = function(){ resolve(im); };
+      im.onerror = reject;
+      im.src = url + "?mesh=" + Date.now();
+    });
+    const ctx = jmaMeshSampleCanvas.getContext("2d", { willReadFrequently: true });
+    ctx.clearRect(0, 0, 256, 256);
+    ctx.drawImage(img, 0, 0);
+    const { px, py } = latLngToTilePixel(lat, lng, z, x, y);
+    const data = ctx.getImageData(px, py, 1, 1).data;
+    let cm = decodeJmaMeshPixel(data[0], data[1], data[2], data[3], kind);
+    if(cm == null){
+      const block = ctx.getImageData(Math.max(0, px-1), Math.max(0, py-1), 3, 3).data;
+      const vals = [];
+      for(let j=0;j<3;j++) for(let i=0;i<3;i++){
+        const idx = (j*3+i)*4;
+        const v = decodeJmaMeshPixel(block[idx], block[idx+1], block[idx+2], block[idx+3], kind);
+        if(v != null) vals.push(v);
+      }
+      if(vals.length) cm = vals.reduce(function(a,b){ return a+b; }, 0) / vals.length;
+    }
+    return cm != null ? Math.round(cm * 10) / 10 : null;
+  }catch(_e){
+    return null;
+  }
+}
+
+async function refreshJmaMeshSnowCache(kind, timeStr){
+  if(!kind || !timeStr || !jmaMeshLut) return;
+  if(jmaMeshRefreshInFlight) return;
+  jmaMeshRefreshInFlight = true;
+  try{
+    const ids = Array.from(FEATURED_IDS);
+    const batch = 5;
+    for(let i=0; i<ids.length; i+=batch){
+      await Promise.all(ids.slice(i, i+batch).map(async function(id){
+        const r = RESORT_MAP[id];
+        if(!r) return;
+        const cm = await sampleJmaMeshSnowCm(resortSnowLat(r), resortSnowLng(r), kind, timeStr);
+        if(cm != null) jmaMeshSnowCache[id] = { cm: cm, at: timeStr, kind: kind };
+      }));
+    }
+    renderList();
+    renderTop10();
+  }finally{
+    jmaMeshRefreshInFlight = false;
+  }
 }
 
 function getJmaProbeLatLngs(){
@@ -6033,9 +6162,12 @@ document.getElementById("view-map").style.display="none";
     fetch("data/resort-operating.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; }),
     fetch("data/jma-prevday-hourly.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; }),
     fetch("data/elevation-snow-factors.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; }),
-    fetch("data/resort-guides.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; })
+    fetch("data/resort-guides.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; }),
+    fetch("data/resort-snow-metadata.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; }),
+    fetch("data/jma-mesh-lut.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; }),
+    fetch("data/resort-snow-published-ids.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; })
   ]).then(function(arr){
-    var jma=arr[1], resortSnow=arr[2], liftTimes=arr[3], operating=arr[4], prevHourly=arr[5], elevFactors=arr[6], resortGuides=arr[7];
+    var jma=arr[1], resortSnow=arr[2], liftTimes=arr[3], operating=arr[4], prevHourly=arr[5], elevFactors=arr[6], resortGuides=arr[7], snowMeta=arr[8], meshLut=arr[9], publishedIds=arr[10];
     if(jma&&typeof jma==="object"){ jmaSnowCache=jma; }
     if(prevHourly&&typeof prevHourly==="object"){ mergeJmaPrevDayHourlyPayload(prevHourly); }
     if(elevFactors&&typeof elevFactors==="object"){ elevationSnowFactors=elevFactors; }
@@ -6043,6 +6175,11 @@ document.getElementById("view-map").style.display="none";
     if(liftTimes&&typeof liftTimes==="object"){ liftTimesCache=liftTimes; }
     if(operating&&typeof operating==="object"){ operatingCache=operating; }
     if(resortGuides&&typeof resortGuides==="object"&&resortGuides.guides){ RESORT_GUIDES=resortGuides; }
+    if(snowMeta&&typeof snowMeta==="object"){ resortSnowMetadata=snowMeta; }
+    if(meshLut&&typeof meshLut==="object"){ jmaMeshLut=meshLut; }
+    if(publishedIds&&Array.isArray(publishedIds.resort_ids)){
+      resortSnowPublishedIds = new Set(publishedIds.resort_ids.map(function(n){ return Number(n); }).filter(function(n){ return Number.isFinite(n); }));
+    }
     if(jma||resortSnow||operating) renderList();
   })
   .catch(function(){})

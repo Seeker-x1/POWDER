@@ -9,7 +9,10 @@
     "suggest-jma-overrides": "node scripts/suggest-jma-overrides.js",
     "count-jma-coverage": "node scripts/count-jma-coverage.js",
     "validate-snow-accuracy": "node scripts/validate-snow-accuracy.js",
-    "fetch-jma-snow": "node scripts/fetch-jma-snow.js"
+    "fetch-jma-snow": "node scripts/fetch-jma-snow.js",
+    "generate-resort-snow-metadata": "node scripts/generate-resort-snow-metadata.js",
+    "generate-jma-mesh-lut": "node scripts/generate-jma-mesh-lut.js",
+    "tune-elevation-factors": "node scripts/tune-elevation-factors.js"
   },
   "dependencies": {
     "kuroshiro": "^1.2.0",

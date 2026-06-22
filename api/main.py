@@ -28,8 +28,8 @@ def _cache_key(lat: float, lng: float):
     return (round(lat, 4), round(lng, 4))
 
 
-async def _fetch_forecast(lat: float, lng: float):
-    data = await open_meteo.fetch(lat, lng)
+async def _fetch_forecast(lat: float, lng: float, elevation_m: float | None = None):
+    data = await open_meteo.fetch(lat, lng, elevation_m)
     if not data:
         return None
     daily = data["daily"]
@@ -54,6 +54,7 @@ async def _fetch_forecast(lat: float, lng: float):
 async def forecast(
     lat: float = Query(..., description="緯度"),
     lng: float = Query(..., description="経度"),
+    elevation: float | None = Query(None, description="標高(m)・Open-Meteo elevation パラメータ"),
 ):
     """
     Open-Meteo 互換の日別予報。TTL(1時間)内はキャッシュから返す。
@@ -65,7 +66,7 @@ async def forecast(
         ent = _forecast_cache[key]
         if now - ent["fetched_at"] < CACHE_TTL_SEC:
             return ent["data"]
-    result = await _fetch_forecast(lat, lng)
+    result = await _fetch_forecast(lat, lng, elevation)
     if result is None:
         return {"error": "Open-Meteo の取得に失敗しました", "daily": None}
     _forecast_cache[key] = {"data": result, "fetched_at": now}

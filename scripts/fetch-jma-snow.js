@@ -6,6 +6,7 @@
  */
 const fs = require("fs");
 const path = require("path");
+const { resortForStationSelection, resortSnowReprElevM } = require("./resort-snow-meta");
 
 const htmlPath = path.join(__dirname, "..", "ski-powder-hunter.html");
 const stationsPath = path.join(__dirname, "..", "data", "amedas-stations.json");
@@ -57,12 +58,12 @@ function stationElevationM(stationInfo) {
 }
 
 function resortTopElevationM(resort) {
-  const top = resort.elevation && resort.elevation.top;
-  return typeof top === "number" && Number.isFinite(top) ? top : 0;
+  return resortSnowReprElevM(resort);
 }
 
 function stationSelectionMetrics(resort, stationInfo) {
-  const distKm = haversineKm(resort.lat, resort.lng, stationInfo.lat, stationInfo.lng);
+  const r = resortForStationSelection(resort);
+  const distKm = haversineKm(r.lat, r.lng, stationInfo.lat, stationInfo.lng);
   const elevDiffM = Math.abs(resortTopElevationM(resort) - stationElevationM(stationInfo));
   const elevationPenaltyKm = elevDiffM * PENALTY_PER_M;
   const selectionScore = distKm + elevationPenaltyKm;

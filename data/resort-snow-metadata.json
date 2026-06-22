@@ -1,0 +1,262 @@
+{
+  "12": {
+    "snow_lat": 43.0669,
+    "snow_lng": 140.9894,
+    "snow_repr_elev_m": 476
+  },
+  "17": {
+    "snow_lat": 42.8728,
+    "snow_lng": 140.6506,
+    "snow_repr_elev_m": 723
+  },
+  "18": {
+    "snow_lat": 42.8572,
+    "snow_lng": 140.7139,
+    "snow_repr_elev_m": 204
+  },
+  "19": {
+    "snow_lat": 42.8867,
+    "snow_lng": 140.7,
+    "snow_repr_elev_m": 480
+  },
+  "20": {
+    "snow_lat": 42.8436,
+    "snow_lng": 140.6839,
+    "snow_repr_elev_m": 305
+  },
+  "21": {
+    "snow_lat": 42.8628,
+    "snow_lng": 140.6394,
+    "snow_repr_elev_m": 688
+  },
+  "22": {
+    "snow_lat": 42.7553,
+    "snow_lng": 140.9003,
+    "snow_repr_elev_m": 520
+  },
+  "45": {
+    "snow_lat": 43.7258,
+    "snow_lng": 142.8881,
+    "snow_repr_elev_m": 639
+  },
+  "48": {
+    "snow_lat": 43.4075,
+    "snow_lng": 142.4286,
+    "snow_repr_elev_m": 672
+  },
+  "54": {
+    "snow_lat": 43.3422,
+    "snow_lng": 142.3436,
+    "snow_repr_elev_m": 587
+  },
+  "73": {
+    "snow_lat": 43.7811,
+    "snow_lng": 143.6203,
+    "snow_repr_elev_m": 228
+  },
+  "102": {
+    "snow_lat": 41.0336,
+    "snow_lng": 140.42,
+    "snow_repr_elev_m": 509
+  },
+  "104": {
+    "snow_lat": 40.6531,
+    "snow_lng": 140.8589,
+    "snow_repr_elev_m": 701
+  },
+  "109": {
+    "snow_lat": 40,
+    "snow_lng": 141.1167,
+    "snow_repr_elev_m": 425
+  },
+  "114": {
+    "snow_lat": 39.2417,
+    "snow_lng": 140.9208,
+    "snow_repr_elev_m": 483
+  },
+  "130": {
+    "snow_lat": 38.1561,
+    "snow_lng": 140.5517,
+    "snow_repr_elev_m": 344
+  },
+  "131": {
+    "snow_lat": 37.9667,
+    "snow_lng": 140.3833,
+    "snow_repr_elev_m": 807
+  },
+  "132": {
+    "snow_lat": 38.0069,
+    "snow_lng": 140.4561,
+    "snow_repr_elev_m": 720
+  },
+  "133": {
+    "snow_lat": 38.1633,
+    "snow_lng": 140.5186,
+    "snow_repr_elev_m": 374
+  },
+  "151": {
+    "snow_lat": 38.1667,
+    "snow_lng": 140.4,
+    "snow_repr_elev_m": 771
+  },
+  "155": {
+    "snow_lat": 38.5292,
+    "snow_lng": 140.2931,
+    "snow_repr_elev_m": 851
+  },
+  "160": {
+    "snow_lat": 38.15,
+    "snow_lng": 140.4333,
+    "snow_repr_elev_m": 483
+  },
+  "161": {
+    "snow_lat": 38.1181,
+    "snow_lng": 140.4308,
+    "snow_repr_elev_m": 734
+  },
+  "171": {
+    "snow_lat": 38.7167,
+    "snow_lng": 140.4667,
+    "snow_repr_elev_m": 381
+  },
+  "172": {
+    "snow_lat": 38.1667,
+    "snow_lng": 140.4,
+    "snow_repr_elev_m": 402
+  },
+  "227": {
+    "snow_lat": 36.7933,
+    "snow_lng": 138.4111,
+    "snow_repr_elev_m": 493
+  },
+  "228": {
+    "snow_lat": 36.7911,
+    "snow_lng": 138.4192,
+    "snow_repr_elev_m": 905
+  },
+  "231": {
+    "snow_lat": 36.85,
+    "snow_lng": 138.1833,
+    "snow_repr_elev_m": 581
+  },
+  "247": {
+    "snow_lat": 36.7583,
+    "snow_lng": 138.5417,
+    "snow_repr_elev_m": 313
+  },
+  "253": {
+    "snow_lat": 36.7833,
+    "snow_lng": 138.0833,
+    "snow_repr_elev_m": 1008
+  },
+  "254": {
+    "snow_lat": 36.9,
+    "snow_lng": 138.4,
+    "snow_repr_elev_m": 740
+  },
+  "255": {
+    "snow_lat": 36.9167,
+    "snow_lng": 138.45,
+    "snow_repr_elev_m": 1013
+  },
+  "258": {
+    "snow_lat": 36.9,
+    "snow_lng": 138.3,
+    "snow_repr_elev_m": 544
+  },
+  "295": {
+    "snow_lat": 36.7167,
+    "snow_lng": 137.85,
+    "snow_repr_elev_m": 374
+  },
+  "296": {
+    "snow_lat": 36.6667,
+    "snow_lng": 137.8333,
+    "snow_repr_elev_m": 978
+  },
+  "297": {
+    "snow_lat": 36.8167,
+    "snow_lng": 137.8833,
+    "snow_repr_elev_m": 576
+  },
+  "298": {
+    "snow_lat": 36.6167,
+    "snow_lng": 137.8333,
+    "snow_repr_elev_m": 534
+  },
+  "299": {
+    "snow_lat": 36.7,
+    "snow_lng": 137.8333,
+    "snow_repr_elev_m": 1020
+  },
+  "301": {
+    "snow_lat": 36.7667,
+    "snow_lng": 137.8667,
+    "snow_repr_elev_m": 602
+  },
+  "304": {
+    "snow_lat": 36.9833,
+    "snow_lng": 138.8333,
+    "snow_repr_elev_m": 721
+  },
+  "306": {
+    "snow_lat": 36.9361,
+    "snow_lng": 138.8181,
+    "snow_repr_elev_m": 293
+  },
+  "324": {
+    "snow_lat": 36.8667,
+    "snow_lng": 138.7667,
+    "snow_repr_elev_m": 651
+  },
+  "325": {
+    "snow_lat": 36.8,
+    "snow_lng": 138.7167,
+    "snow_repr_elev_m": 583
+  },
+  "331": {
+    "snow_lat": 36.9333,
+    "snow_lng": 138.8,
+    "snow_repr_elev_m": 453
+  },
+  "332": {
+    "snow_lat": 36.9167,
+    "snow_lng": 138.7833,
+    "snow_repr_elev_m": 635
+  },
+  "333": {
+    "snow_lat": 36.9667,
+    "snow_lng": 138.8167,
+    "snow_repr_elev_m": 654
+  },
+  "334": {
+    "snow_lat": 36.8833,
+    "snow_lng": 138.2,
+    "snow_repr_elev_m": 659
+  },
+  "335": {
+    "snow_lat": 36.8833,
+    "snow_lng": 138.2167,
+    "snow_repr_elev_m": 638
+  },
+  "336": {
+    "snow_lat": 36.8667,
+    "snow_lng": 138.2,
+    "snow_repr_elev_m": 315
+  },
+  "337": {
+    "snow_lat": 36.8833,
+    "snow_lng": 138.2,
+    "snow_repr_elev_m": 575
+  },
+  "339": {
+    "snow_lat": 36.8333,
+    "snow_lng": 138.1667,
+    "snow_repr_elev_m": 479
+  },
+  "340": {
+    "snow_lat": 36.9167,
+    "snow_lng": 138.2,
+    "snow_repr_elev_m": 346
+  }
+}

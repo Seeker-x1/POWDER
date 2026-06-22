@@ -1,0 +1,4 @@
+{
+  "comment": "Per-resort opt-in for published snow depth. Global USE_RESORT_PUBLISHED_SNOW stays false; listed ids use resort-snow.json when present.",
+  "resort_ids": []
+}

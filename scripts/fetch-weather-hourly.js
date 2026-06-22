@@ -4,6 +4,7 @@
  */
 const fs = require("fs");
 const path = require("path");
+const { resortSnowLat, resortSnowLng, resortSnowReprElevM } = require("./resort-snow-meta");
 
 const htmlPath = path.join(__dirname, "..", "ski-powder-hunter.html");
 const outPath = path.join(__dirname, "..", "data", "weather.json");
@@ -59,8 +60,9 @@ async function main() {
   const cache = {};
   for (let i = 0; i < resorts.length; i++) {
     const r = resorts[i];
-    const elev = r.elevation?.top != null ? `&elevation=${r.elevation.top}` : "";
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${r.lat}&longitude=${r.lng}` +
+    const elev =
+      resortSnowReprElevM(r) > 0 ? `&elevation=${Math.round(resortSnowReprElevM(r))}` : "";
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${resortSnowLat(r)}&longitude=${resortSnowLng(r)}` +
       elev +
       `&daily=snowfall_sum,wind_speed_10m_max,wind_direction_10m_dominant,wind_gusts_10m_max,temperature_2m_min,temperature_2m_max,precipitation_hours` +
       `&hourly=wind_speed_850hPa,wind_direction_850hPa,snowfall,snow_depth` +

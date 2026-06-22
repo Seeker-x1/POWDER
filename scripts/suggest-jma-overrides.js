@@ -13,6 +13,7 @@ const stationsPath = path.join(ROOT, "data", "amedas-stations.json");
 const overridesPath = path.join(ROOT, "data", "jma-station-overrides.json");
 const aliasPath = path.join(ROOT, "data", "jma-station-csv-alias.json");
 const reportsDir = path.join(ROOT, "reports");
+const { resortForStationSelection } = require("./resort-snow-meta");
 
 const PENALTY_PER_M = 0.002;
 const DIST_WARN_KM = 25;
@@ -62,8 +63,8 @@ function haversineKm(lat1, lng1, lat2, lng2) {
 }
 
 function resortTopM(resort) {
-  const top = resort.elevation?.top;
-  return typeof top === "number" && Number.isFinite(top) ? top : 0;
+  const r = resortForStationSelection(resort);
+  return r.elevation?.top ?? 0;
 }
 
 function stationElevM(st) {
@@ -71,11 +72,12 @@ function stationElevM(st) {
 }
 
 function bestStationForResort(resort, stations) {
+  const r = resortForStationSelection(resort);
   let best = null;
   for (const [no, st] of Object.entries(stations)) {
     if (BLOCKED_AMEDAS_NOS.has(no)) continue;
-    const distKm = haversineKm(resort.lat, resort.lng, st.lat, st.lng);
-    const elevDiffM = Math.abs(resortTopM(resort) - stationElevM(st));
+    const distKm = haversineKm(r.lat, r.lng, st.lat, st.lng);
+    const elevDiffM = Math.abs(resortTopM(r) - stationElevM(st));
     const selectionScore = distKm + elevDiffM * PENALTY_PER_M;
     if (!best || selectionScore < best.selection_score) {
       best = {

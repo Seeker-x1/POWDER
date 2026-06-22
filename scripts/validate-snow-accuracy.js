@@ -16,10 +16,7 @@ const reportsDir = path.join(ROOT, "reports");
 
 const ELEVATION_SNOW_FACTORS_DEFAULT = { base_m: 500, factor_per_m: 0.00025, max: 1.5 };
 
-/** 優先チューニング対象（観測系精度改善フェーズ） */
-const WATCHLIST_RESORT_IDS = new Set([
-  17, 18, 19, 20, 21, 54, 104, 109, 151, 199, 203, 210, 306, 324, 331, 332, 333,
-]);
+const { SNOW_ACCURACY_WATCHLIST_IDS: WATCHLIST_RESORT_IDS } = require("./snow-watchlist");
 
 const overridesPath = path.join(ROOT, "data", "jma-station-overrides.json");
 

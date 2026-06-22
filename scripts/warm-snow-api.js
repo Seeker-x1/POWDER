@@ -11,6 +11,7 @@ const path = require("path");
 
 const htmlPath = path.join(__dirname, "..", "ski-powder-hunter.html");
 const DELAY_MS = 200;
+const { resortSnowLat, resortSnowLng, resortSnowReprElevM } = require("./resort-snow-meta");
 
 function extractResorts(html) {
   const startMarker = "const RESORTS = ";
@@ -46,7 +47,9 @@ async function main() {
   let fail = 0;
   for (let i = 0; i < resorts.length; i++) {
     const r = resorts[i];
-    const url = `${base}/api/forecast?lat=${r.lat}&lng=${r.lng}`;
+    const url = `${base}/api/forecast?lat=${resortSnowLat(r)}&lng=${resortSnowLng(r)}${
+      resortSnowReprElevM(r) > 0 ? `&elevation=${Math.round(resortSnowReprElevM(r))}` : ""
+    }`;
     try {
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);

@@ -3,9 +3,12 @@ import httpx
 
 BASE = "https://api.open-meteo.com/v1/forecast"
 
-async def fetch(lat: float, lng: float) -> dict | None:
+async def fetch(lat: float, lng: float, elevation_m: float | None = None) -> dict | None:
+    elev_q = ""
+    if elevation_m is not None and elevation_m > 0:
+        elev_q = f"&elevation={int(round(elevation_m))}"
     url = (
-        f"{BASE}?latitude={lat}&longitude={lng}"
+        f"{BASE}?latitude={lat}&longitude={lng}{elev_q}"
         "&daily=snowfall_sum,wind_speed_10m_max,wind_direction_10m_dominant,"
         "wind_gusts_10m_max,temperature_2m_min,temperature_2m_max,precipitation_hours"
         "&hourly=wind_speed_850hPa,wind_direction_850hPa"

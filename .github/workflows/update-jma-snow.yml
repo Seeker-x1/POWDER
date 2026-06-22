@@ -1,0 +1,61 @@
+# 毎時 JST 55 分に気象庁積雪 CSV を取得し data/jma-snow.json を更新する
+name: Update JMA snow cache
+
+on:
+  schedule:
+    - cron: "55 * * * *"   # job TZ=Asia/Tokyo → JST 毎時55分
+  workflow_dispatch:
+
+concurrency:
+  group: update-jma-snow-cache
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      TZ: Asia/Tokyo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          package-manager-cache: false
+
+      - name: Fetch JMA snow and write data/jma-snow.json
+        run: node scripts/fetch-jma-snow.js
+
+      - name: Snow accuracy report (non-blocking)
+        run: node scripts/validate-snow-accuracy.js || echo "validate-snow-accuracy skipped or failed (non-blocking)"
+        continue-on-error: true
+
+      - name: Commit accuracy report if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reports/snow-accuracy-*.json || true
+          if git diff --staged --quiet; then
+            echo "No changes to snow accuracy report."
+          else
+            git commit -m "chore: update snow accuracy report [automated]"
+            git push
+          fi
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/jma-snow.json
+          if git diff --staged --quiet; then
+            echo "No changes to JMA snow cache."
+          else
+            git commit -m "chore: update JMA snow cache [automated]"
+            git push
+          fi

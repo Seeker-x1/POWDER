@@ -205,18 +205,28 @@ function countCompleteHours(precip_mm, temp_c) {
   return n;
 }
 
+/** GitHub Actions: 全面失敗時もワークフローを落とさず、既存キャッシュを温存 */
+function exitKeepPrevDayOnFailure(warningMsg) {
+  if (fs.existsSync(outPath)) {
+    console.error(`warning: ${warningMsg} — keeping existing ${outPath}`);
+  } else {
+    console.error(`warning: ${warningMsg} — no existing ${outPath} to keep`);
+  }
+  process.exit(0);
+}
+
 async function main() {
   const { calendarDay: dateOverride } = parseArgs(process.argv);
   if (!fs.existsSync(jmaSnowPath)) {
-    console.error("data/jma-snow.json がありません。先に fetch-jma-snow.js を実行してください。");
-    process.exit(1);
+    exitKeepPrevDayOnFailure("data/jma-snow.json is missing");
+    return;
   }
 
   const jmaSnow = JSON.parse(fs.readFileSync(jmaSnowPath, "utf8"));
   const stationNos = uniqueStationNosFromJmaSnow(jmaSnow);
   if (stationNos.length === 0) {
-    console.error("jma-snow.json に station_no がありません。");
-    process.exit(1);
+    exitKeepPrevDayOnFailure("jma-snow.json has no station_no entries");
+    return;
   }
 
   const calendar_day_jst = dateOverride || yesterdayJstCalendarDay();
@@ -242,6 +252,13 @@ async function main() {
     console.error(`  ${stationNo}: ${complete}/24 時間`);
   });
 
+  if (okStations === 0 && partialStations === 0) {
+    exitKeepPrevDayOnFailure(
+      `no hourly data for ${calendar_day_jst} (${stationNos.length} stations)`
+    );
+    return;
+  }
+
   const payload = {
     calendar_day_jst,
     rule_note_ja: RULE_NOTE_JA,
@@ -259,6 +276,5 @@ async function main() {
 }
 
 main().catch((e) => {
-  console.error(e);
-  process.exit(1);
+  exitKeepPrevDayOnFailure(String(e && e.message ? e.message : e));
 });

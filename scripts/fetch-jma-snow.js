@@ -188,8 +188,16 @@ async function main() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     sncCsvText = await res.text();
   } catch (e) {
-    console.error("気象庁積雪CSVの取得に失敗しました:", e.message);
-    process.exit(1);
+    console.error("warning: 気象庁積雪CSVの取得に失敗しました (オフシーズン・404等):", e.message);
+    if (fs.existsSync(outPath)) {
+      console.error(`warning: 既存の ${outPath} を保持します`);
+      process.exit(0);
+    }
+    const dir = path.dirname(outPath);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(outPath, "{}\n", "utf8");
+    console.error(`warning: ${outPath} が無かったため空オブジェクトを書き込みました`);
+    process.exit(0);
   }
 
   let sndallCsvText = null;

@@ -2086,7 +2086,7 @@ const RESORT_MAP = Object.fromEntries(RESORTS.map(r=>[r.id,r]));
   });
 })();
 
-// 自前API（B+C）を使う場合はベースURLを指定（例: "http://localhost:8000"）。空なら Open-Meteo 直叩き
+// GitHub Pages default is "" (static data/*.json only). Self-hosted API is an optional future path.
 const SNOW_API_BASE = "";
 const USE_RESORT_PUBLISHED_SNOW = false;
 const SNOW_PHASE_THRESHOLDS = { rainMaxC: 4, snowMinC: 0 };
@@ -2136,6 +2136,35 @@ function displayNameEn(r){
 
 // ─── Weather cache ─────────────────────────────────────────────
 const weatherCache = {};   // id -> {daily:{time,snowfall_sum,wind_speed_10m_max,...}}
+function seedWeatherCacheFromJson(obj){
+  if(!obj||typeof obj!=="object") return 0;
+  let n=0;
+  for(const key of Object.keys(obj)){
+    const entry=obj[key];
+    if(entry==null||entry==="loading") continue;
+    const id=Number(key);
+    if(!Number.isFinite(id)) continue;
+    weatherCache[id]=entry;
+    n++;
+  }
+  return n;
+}
+function applyWeatherCacheSeedCount(n){
+  if(n<=0) return;
+  const el=document.getElementById("fetched-count");
+  if(el) el.textContent=Object.values(weatherCache).filter(function(v){ return v&&v!=="loading"; }).length;
+  renderTop10();
+  renderList();
+}
+const weatherJsonLoadPromise=fetch("data/weather.json").then(function(r){
+  var lm=r.headers.get("Last-Modified");
+  if(lm) lastDataUpdated=new Date(lm);
+  return r.ok?r.json():null;
+}).catch(function(){ return null; }).then(function(obj){
+  const n=seedWeatherCacheFromJson(obj);
+  if(n>0) applyWeatherCacheSeedCount(n);
+  return n;
+});
 let jmaSnowCache = {};     // id -> { depth_cm, station_name, observed_at }（気象庁・日1回取得の積雪）
 let jmaMeshSnowCache = {}; // resortId -> { cm, at }（JMA mesh estimate · future）
 let elevationSnowFactors = null;
@@ -2622,109 +2651,111 @@ function initTopDateButtons(){
 
 // ─── Open-Meteo fetch ──────────────────────────────────────────
 function fetchWeather(resort){
-  if(weatherCache[resort.id]!==undefined) return Promise.resolve(weatherCache[resort.id]);
-  if(weatherCache[resort.id]==="loading") return Promise.resolve(null);
-  weatherCache[resort.id]="loading";
+  return weatherJsonLoadPromise.then(function(){
+    if(weatherCache[resort.id]!==undefined) return Promise.resolve(weatherCache[resort.id]);
+    if(weatherCache[resort.id]==="loading") return Promise.resolve(null);
+    weatherCache[resort.id]="loading";
 
-  const useOwnApi = typeof SNOW_API_BASE==="string"&&SNOW_API_BASE.length>0;
-  const url = useOwnApi
-    ? `${SNOW_API_BASE.replace(/\/$/,"")}/api/forecast?lat=${resort.lat}&lng=${resort.lng}`
-    : `https://api.open-meteo.com/v1/forecast?latitude=${resort.lat}&longitude=${resort.lng}`+
-      (resort.elevation?.top != null ? `&elevation=${resort.elevation.top}` : "")+
-      `&daily=snowfall_sum,wind_speed_10m_max,wind_direction_10m_dominant,wind_gusts_10m_max,temperature_2m_min,temperature_2m_max,precipitation_hours`+
-      `&hourly=wind_speed_850hPa,wind_direction_850hPa,snowfall,snow_depth,precipitation_probability,rain,precipitation,temperature_2m`+
-      `&past_days=1&forecast_days=7&timezone=Asia%2FTokyo`;
+    const useOwnApi = typeof SNOW_API_BASE==="string"&&SNOW_API_BASE.length>0;
+    const url = useOwnApi
+      ? `${SNOW_API_BASE.replace(/\/$/,"")}/api/forecast?lat=${resort.lat}&lng=${resort.lng}`
+      : `https://api.open-meteo.com/v1/forecast?latitude=${resort.lat}&longitude=${resort.lng}`+
+        (resort.elevation?.top != null ? `&elevation=${resort.elevation.top}` : "")+
+        `&daily=snowfall_sum,wind_speed_10m_max,wind_direction_10m_dominant,wind_gusts_10m_max,temperature_2m_min,temperature_2m_max,precipitation_hours`+
+        `&hourly=wind_speed_850hPa,wind_direction_850hPa,snowfall,snow_depth,precipitation_probability,rain,precipitation,temperature_2m`+
+        `&past_days=1&forecast_days=7&timezone=Asia%2FTokyo`;
 
-  // #region [Resort debug] fetchWeather start (cap 5)
-  if(resortFetchDebugCount < 5){
-    resortFetchDebugCount++;
-    console.log("[Resort debug] fetchWeather start", { id: resort.id, url });
-  }
-  // #endregion
+    // #region [Resort debug] fetchWeather start (cap 5)
+    if(resortFetchDebugCount < 5){
+      resortFetchDebugCount++;
+      console.log("[Resort debug] fetchWeather start", { id: resort.id, url });
+    }
+    // #endregion
 
-  return fetch(url)
-    .then(r=>r.json().then(data=>({ ok:r.ok, status:r.status, data })))
-    .then(({ ok, status, data })=>{
-      // #region [Resort debug] fetchWeather response sample (cap)
-      if(resortFetchDebugCount <= 5){
-        const topErrType = data && "error" in data ? typeof data.error : null;
-        const topReason = data && "reason" in data ? data.reason : undefined;
-        const errReason = data && typeof data.error === "object" ? (data.error.reason || data.error.message || JSON.stringify(data.error)) : null;
-        const dailyType = data && "daily" in data ? typeof data.daily : null;
-        const hourlyType = data && "hourly" in data ? typeof data.hourly : null;
-        console.log("[Resort debug] fetchWeather response sample", {
-          id: resort.id,
-          useOwnApi,
-          httpOk: ok,
-          httpStatus: status,
-          hasError: !!(data && data.error),
-          topErrType,
-          topReason,
-          errorReason: errReason,
-          hasDaily: !!data && !!data.daily,
-          dailyType,
-          hasHourly: !!data && !!data.hourly,
-          hourlyType,
-          dataKeys: data ? Object.keys(data) : null
-        });
-      }
-      // #endregion
+    return fetch(url)
+      .then(r=>r.json().then(data=>({ ok:r.ok, status:r.status, data })))
+      .then(({ ok, status, data })=>{
+        // #region [Resort debug] fetchWeather response sample (cap)
+        if(resortFetchDebugCount <= 5){
+          const topErrType = data && "error" in data ? typeof data.error : null;
+          const topReason = data && "reason" in data ? data.reason : undefined;
+          const errReason = data && typeof data.error === "object" ? (data.error.reason || data.error.message || JSON.stringify(data.error)) : null;
+          const dailyType = data && "daily" in data ? typeof data.daily : null;
+          const hourlyType = data && "hourly" in data ? typeof data.hourly : null;
+          console.log("[Resort debug] fetchWeather response sample", {
+            id: resort.id,
+            useOwnApi,
+            httpOk: ok,
+            httpStatus: status,
+            hasError: !!(data && data.error),
+            topErrType,
+            topReason,
+            errorReason: errReason,
+            hasDaily: !!data && !!data.daily,
+            dailyType,
+            hasHourly: !!data && !!data.hourly,
+            hourlyType,
+            dataKeys: data ? Object.keys(data) : null
+          });
+        }
+        // #endregion
 
-      let daily = null;
-      if(useOwnApi){
-        if(data.daily) daily=data.daily;
-        else if(data.error){ weatherCache[resort.id]=null; return null; }
-      } else {
-        daily = data.daily||null;
-        if(daily && data.hourly?.wind_speed_850hPa){
-          const h = data.hourly.wind_speed_850hPa;
-          const hDir = data.hourly.wind_direction_850hPa||[];
-          daily.wind_speed_850hPa_max = [];
-          daily.wind_dir_850hPa = [];
-          const numDays = (daily.time&&daily.time.length)||(h.length>=192?8:7);
-          for(let d=0;d<numDays;d++){
-            const slice = h.slice(d*24,(d+1)*24).filter(v=>v!=null);
-            daily.wind_speed_850hPa_max.push(slice.length?Math.max(...slice):null);
-            const dSlice = hDir.slice(d*24,(d+1)*24).filter(v=>v!=null);
-            daily.wind_dir_850hPa.push(dSlice.length?dSlice[Math.floor(dSlice.length/2)]:null);
+        let daily = null;
+        if(useOwnApi){
+          if(data.daily) daily=data.daily;
+          else if(data.error){ weatherCache[resort.id]=null; return null; }
+        } else {
+          daily = data.daily||null;
+          if(daily && data.hourly?.wind_speed_850hPa){
+            const h = data.hourly.wind_speed_850hPa;
+            const hDir = data.hourly.wind_direction_850hPa||[];
+            daily.wind_speed_850hPa_max = [];
+            daily.wind_dir_850hPa = [];
+            const numDays = (daily.time&&daily.time.length)||(h.length>=192?8:7);
+            for(let d=0;d<numDays;d++){
+              const slice = h.slice(d*24,(d+1)*24).filter(v=>v!=null);
+              daily.wind_speed_850hPa_max.push(slice.length?Math.max(...slice):null);
+              const dSlice = hDir.slice(d*24,(d+1)*24).filter(v=>v!=null);
+              daily.wind_dir_850hPa.push(dSlice.length?dSlice[Math.floor(dSlice.length/2)]:null);
+            }
           }
+          if(data.hourly?.snowfall) daily.hourly_snowfall = data.hourly.snowfall;
+          if(data.hourly?.time) daily.hourly_time = data.hourly.time;
+          if(data.hourly?.snow_depth) daily.hourly_snow_depth = data.hourly.snow_depth;
+          if(data.hourly?.precipitation_probability) daily.hourly_precip_prob = data.hourly.precipitation_probability;
+          if(data.hourly?.rain) daily.hourly_rain = data.hourly.rain;
+          else if(data.hourly?.precipitation && data.hourly?.snowfall) {
+            const prec = data.hourly.precipitation, snow = data.hourly.snowfall;
+            daily.hourly_rain = prec.map((p,i)=> Math.max(0, (p||0) - (snow[i]!=null ? snow[i] : 0)));
+          }
+          if(data.hourly?.temperature_2m) daily.hourly_temp_2m = data.hourly.temperature_2m;
         }
-        if(data.hourly?.snowfall) daily.hourly_snowfall = data.hourly.snowfall;
-        if(data.hourly?.time) daily.hourly_time = data.hourly.time;
-        if(data.hourly?.snow_depth) daily.hourly_snow_depth = data.hourly.snow_depth;
-        if(data.hourly?.precipitation_probability) daily.hourly_precip_prob = data.hourly.precipitation_probability;
-        if(data.hourly?.rain) daily.hourly_rain = data.hourly.rain;
-        else if(data.hourly?.precipitation && data.hourly?.snowfall) {
-          const prec = data.hourly.precipitation, snow = data.hourly.snowfall;
-          daily.hourly_rain = prec.map((p,i)=> Math.max(0, (p||0) - (snow[i]!=null ? snow[i] : 0)));
+        if(useOwnApi && daily && data.hourly?.temperature_2m){
+          daily.hourly_temp_2m = data.hourly.temperature_2m;
         }
-        if(data.hourly?.temperature_2m) daily.hourly_temp_2m = data.hourly.temperature_2m;
-      }
-      if(useOwnApi && daily && data.hourly?.temperature_2m){
-        daily.hourly_temp_2m = data.hourly.temperature_2m;
-      }
-      weatherCache[resort.id]=daily;
+        weatherCache[resort.id]=daily;
 
-      // #region [Resort debug] fetchWeather done (cap 5)
-      if(resortFetchDebugCount <= 5){
-        console.log("[Resort debug] fetchWeather done", { id: resort.id, hasDaily: !!daily, hasHourly: !!(daily&&daily.hourly_snowfall) });
-      }
-      // #endregion
+        // #region [Resort debug] fetchWeather done (cap 5)
+        if(resortFetchDebugCount <= 5){
+          console.log("[Resort debug] fetchWeather done", { id: resort.id, hasDaily: !!daily, hasHourly: !!(daily&&daily.hourly_snowfall) });
+        }
+        // #endregion
 
-      lastDataUpdated = new Date();
-      document.getElementById("fetched-count").textContent=Object.values(weatherCache).filter(v=>v&&v!=="loading").length;
-      renderTop10();
-      return weatherCache[resort.id];
-    })
-    .catch((err)=>{
-      weatherCache[resort.id]=null;
-      // #region [Resort debug] fetchWeather error (cap 5)
-      if(resortFetchDebugCount <= 5){
-        console.log("[Resort debug] fetchWeather error", { id: resort.id, err: String(err && err.message ? err.message : err) });
-      }
-      // #endregion
-      return null;
-    });
+        lastDataUpdated = new Date();
+        document.getElementById("fetched-count").textContent=Object.values(weatherCache).filter(v=>v&&v!=="loading").length;
+        renderTop10();
+        return weatherCache[resort.id];
+      })
+      .catch((err)=>{
+        weatherCache[resort.id]=null;
+        // #region [Resort debug] fetchWeather error (cap 5)
+        if(resortFetchDebugCount <= 5){
+          console.log("[Resort debug] fetchWeather error", { id: resort.id, err: String(err && err.message ? err.message : err) });
+        }
+        // #endregion
+        return null;
+      });
+  });
 }
 
 // Queue-based batch fetcher
@@ -5775,7 +5806,7 @@ document.getElementById("view-map").style.display="none";
   console.log("[Resort debug] init start (en)");
   // #endregion
   Promise.all([
-    fetch("data/weather.json").then(function(r){ var lm=r.headers.get("Last-Modified"); if(lm) lastDataUpdated=new Date(lm); return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; }),
+    weatherJsonLoadPromise,
     fetch("data/jma-snow.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; }),
     fetch("data/resort-snow.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; }),
     fetch("data/lift-times.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; }),
@@ -5785,9 +5816,9 @@ document.getElementById("view-map").style.display="none";
     fetch("data/elevation-snow-factors.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; }),
     fetch("data/resort-guides.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; })
   ]).then(function(arr){
-    var obj=arr[0], jma=arr[1], resortSnow=arr[2], liftTimes=arr[3], operating=arr[4], namesEn=arr[5], prevHourly=arr[6], elevFactors=arr[7], resortGuides=arr[8];
+    var jma=arr[1], resortSnow=arr[2], liftTimes=arr[3], operating=arr[4], namesEn=arr[5], prevHourly=arr[6], elevFactors=arr[7], resortGuides=arr[8];
     // #region [Resort debug] EN cache loaded
-    console.log("[Resort debug] init cache done", { hasWeather: !!obj, hasJma: !!jma, hasResortSnow: !!resortSnow, hasLiftTimes: !!liftTimes, hasOperating: !!operating, hasNamesEn: !!namesEn, hasPrevDayHourly: !!prevHourly });
+    console.log("[Resort debug] init cache done", { hasWeather: !!(arr[0]>0), hasJma: !!jma, hasResortSnow: !!resortSnow, hasLiftTimes: !!liftTimes, hasOperating: !!operating, hasNamesEn: !!namesEn, hasPrevDayHourly: !!prevHourly });
     // #endregion
     // Apply English names first so displayNameEn() is correct on first paint
     if(namesEn&&typeof namesEn==="object"){
@@ -5806,7 +5837,6 @@ document.getElementById("view-map").style.display="none";
     if(liftTimes&&typeof liftTimes==="object"){ liftTimesCache=liftTimes; }
     if(operating&&typeof operating==="object"){ operatingCache=operating; }
     if(resortGuides&&typeof resortGuides==="object"&&resortGuides.guides){ RESORT_GUIDES=resortGuides; }
-    if(obj&&typeof obj==="object"){ var n=0; for(var id in obj) if(obj[id]){ weatherCache[id]=obj[id]; n++; } if(n>0){ var el=document.getElementById("fetched-count"); if(el) el.textContent=Object.values(weatherCache).filter(function(v){ return v&&v!=="loading"; }).length; renderTop10(); } }
     renderList();
   })
   .catch(function(){})

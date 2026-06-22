@@ -1,8 +1,24 @@
 # data/
 
-## 気象庁積雪（日1回）
+## GitHub only 運用（本番）
 
-- **jma-snow.json** … 各ゲレンデに「最も近い気象庁観測所」の現在積雪（snc）・日最深積雪（mxsnc）・直近3時間降雪量（snd）を紐づけたデータ。`scripts/fetch-jma-snow.js` で生成（日1回実行想定）。
+GitHub Pages + Actions のみで動かすときの更新スケジュール:
+
+| workflow | ファイル | 頻度 |
+|----------|----------|------|
+| `update-weather.yml` | `weather.json` | 毎時 |
+| `update-jma-snow.yml` | `jma-snow.json` | 毎時55分 JST |
+| `update-jma-prevday-hourly.yml` | `jma-prevday-hourly.json` | 毎日 1:10 JST |
+
+手動実行: GitHub → Actions → 各 workflow → **Run workflow**。
+
+自前 API（`api/`）は使わない。HTML の `SNOW_API_BASE` は `""` のまま。
+
+---
+
+## 気象庁積雪（毎時）
+
+- **jma-snow.json** … 各ゲレンデに「最も近い気象庁観測所」の現在積雪（snc）・日最深積雪（mxsnc）・直近3時間降雪量（snd）を紐づけたデータ。`scripts/fetch-jma-snow.js` で生成（`update-jma-snow.yml` が毎時実行）。
 
 ### 前日実績（カレンダー日・JST）— 任意
 

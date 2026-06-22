@@ -30,6 +30,11 @@ const pairs = [
   ["FV_SLOT_ARIA_JA", "FV_SLOT_ARIA_EN"],
   ["prefers-reduced-motion", "prefers-reduced-motion"],
   ["min-height:44px", "min-height:44px"],
+  ["btn-top-sm", "btn-top-sm"],
+  ["showTopView()", "showTopView()"],
+  ["recenterMapForFromMapDetail", "recenterMapForFromMapDetail"],
+  ["getMobileMapSheetPaddingPx", "getMobileMapSheetPaddingPx"],
+  [".leaflet-control-zoom{display:none!important}", ".leaflet-control-zoom{display:none!important}"],
 ];
 
 let failed = false;

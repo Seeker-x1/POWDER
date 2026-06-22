@@ -25,6 +25,8 @@ const phases = {
     "class=\"sheet\"",
     "l1-head",
     "btn-next-sm",
+    "btn-top-sm",
+    "showTopView()",
   ],
   "5-3": [
     "b-glance__verdict",

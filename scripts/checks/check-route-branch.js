@@ -24,6 +24,17 @@ const required = [
   "scripts/focus-view-ranking.js",
   "openFocusFromRanking(openResortId)",
   "openFocusFromMap(r.id)",
+  "if(isMobilePopup && useFocusRankingShell){",
+  "contentHtml = mobileTopHtml || contentHtml;",
+  "btn-top-sm",
+  "showTopView()",
+  "topAria: \"ランキングに戻る\"",
+  "topAria: \"Back to ranking\"",
+  "recenterMapForFromMapDetail",
+  "getMobileMapSheetPaddingPx",
+  ".leaflet-control-zoom{display:none!important}",
+  "display:none!important",
+  ".view-map.view-map--focus-ranking .leaflet-popup",
 ];
 
 const mapMarkerOk = /m\.on\("click",\(\)=>openFocusFromMap\(r\.id\)\)/;
@@ -49,6 +60,10 @@ for (const file of files) {
   }
   if (/pw-card.*selectResort\(/.test(src)) {
     console.error(`[FAIL] ${label}: sidebar pw-card must use openFocusFromMap`);
+    failed = true;
+  }
+  if (/map-detail-sheet--focus-ranking \.popup-btns\{\s*display:grid!important/.test(src)) {
+    console.error(`[FAIL] ${label}: focus-ranking must not force popup-btns display:grid`);
     failed = true;
   }
   if (/top-card.*openFocusFromRanking/.test(src)) {

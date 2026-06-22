@@ -77,6 +77,48 @@ async function measure(page) {
     const overflowX =
       body && body.scrollWidth > body.clientWidth + 1 ? body.scrollWidth - body.clientWidth : 0;
     const docOverflow = document.documentElement.scrollWidth > window.innerWidth + 1;
+    const legacySelectors = [
+      ".popup-pw",
+      ".popup-operating-row",
+      ".popup-detail-row",
+      ".popup-nearby",
+      ".popup-feedback",
+      ".popup-btns",
+      ".popup-nav",
+      ".loading-row",
+    ];
+    const legacyVisible = legacySelectors.filter((sel) => {
+      const el = document.querySelector(`#map-detail-sheet-body ${sel}`);
+      if (!el) return false;
+      const cs = getComputedStyle(el);
+      return cs.display !== "none" && cs.visibility !== "hidden";
+    });
+    const scroller = document.querySelector("#map-detail-sheet .map-detail-sheet__scroller");
+    const straySiblings = scroller
+      ? Array.from(scroller.children).filter((el) => {
+          if (el.classList.contains("map-focus-screen")) return false;
+          const cs = getComputedStyle(el);
+          return cs.display !== "none" && cs.visibility !== "hidden";
+        }).length
+      : 0;
+    const verdictEl = document.querySelector("#glance-verdict");
+    const detailEl = document.querySelector("#glance-detail");
+    const topBtn = document.querySelector(".btn-top-sm");
+    let topBtnVisible = null;
+    if (topBtn) {
+      const cs = getComputedStyle(topBtn);
+      topBtnVisible = cs.display !== "none" && cs.visibility !== "hidden";
+    }
+    let verdictFirst = null;
+    let verdictLarger = null;
+    if (verdictEl && detailEl) {
+      const vRect = verdictEl.getBoundingClientRect();
+      const dRect = detailEl.getBoundingClientRect();
+      verdictFirst = vRect.top <= dRect.top + 1;
+      verdictLarger =
+        parseFloat(getComputedStyle(verdictEl).fontSize) >
+        parseFloat(getComputedStyle(detailEl).fontSize);
+    }
     return {
       chipsGap: styles ? styles.gap : null,
       chipsScrollW: chips ? chips.scrollWidth : 0,
@@ -98,6 +140,12 @@ async function measure(page) {
       slotLabels,
       overflowX,
       docOverflow,
+      legacyVisible,
+      straySiblings,
+      verdictFirst,
+      verdictLarger,
+      topBtnVisible,
+      topBtnMinHeight: topBtn ? getComputedStyle(topBtn).minHeight : null,
     };
   });
 }
@@ -161,6 +209,14 @@ async function runCase(page, file, vp, caseId) {
     if (!m0.l2Hidden) throw new Error(`${label}: l2 not hidden`);
     if (m0.glanceHidden) throw new Error(`${label}: glance hidden`);
     if (!m0.glanceClass.includes("b-glance--")) throw new Error(`${label}: no glance level class`);
+    if (m0.legacyVisible && m0.legacyVisible.length) {
+      throw new Error(`${label}: legacy popup visible: ${m0.legacyVisible.join(",")}`);
+    }
+    if (m0.straySiblings) throw new Error(`${label}: stray scroller siblings=${m0.straySiblings}`);
+    if (m0.verdictFirst === false) throw new Error(`${label}: verdict not above detail`);
+    if (m0.verdictLarger === false) throw new Error(`${label}: verdict not larger than detail`);
+    if (m0.topBtnVisible !== true) throw new Error(`${label}: btn-top-sm not visible`);
+    if (m0.topBtnMinHeight !== "44px") throw new Error(`${label}: btn-top-sm min-height=${m0.topBtnMinHeight}`);
     return { label, pass: true };
   }
 
@@ -190,7 +246,78 @@ async function checkOverflow320(page, file) {
     throw new Error(`320 overflow: doc=${m.docOverflow} body=${m.overflowX}px`);
   }
   if (m.chipsGap !== "8px") throw new Error(`320 gap=${m.chipsGap}`);
+  if (m.legacyVisible && m.legacyVisible.length) {
+    throw new Error(`320 legacy visible: ${m.legacyVisible.join(",")}`);
+  }
+  if (m.straySiblings) throw new Error(`320 stray scroller siblings=${m.straySiblings}`);
   return m;
+}
+
+async function checkRankingEntry320390(page, file) {
+  for (const w of [320, 390]) {
+    await page.setViewportSize({ width: w, height: 844 });
+    await page.goto(`${BASE}/${file}`, { waitUntil: "domcontentloaded", timeout: 60000 });
+    await page.waitForFunction(() => typeof showMapView === "function", null, { timeout: 30000 });
+    await page.evaluate(
+      ({ id, daily }) => {
+        weatherCache[id] = daily;
+        targetDayOffset = 0;
+        showMapView(id);
+      },
+      { id: RESORT_ID, daily: mockDaily() }
+    );
+    await page.waitForSelector("#map-detail-sheet.map-detail-sheet--focus-ranking", { timeout: 20000 });
+    await page.waitForTimeout(400);
+    const m = await measure(page);
+    if (m.legacyVisible && m.legacyVisible.length) {
+      throw new Error(`${w} ranking legacy: ${m.legacyVisible.join(",")}`);
+    }
+    if (m.straySiblings) throw new Error(`${w} ranking stray siblings=${m.straySiblings}`);
+    if (m.verdictFirst === false) throw new Error(`${w} verdict not first`);
+    if (m.verdictLarger === false) throw new Error(`${w} verdict not larger`);
+  }
+}
+
+async function checkTopButtonNav(page, file) {
+  await bootFocus(page, file, 390, 844);
+  const before = await page.evaluate(() => ({
+    topDisplay: document.getElementById("view-top")?.style.display,
+    mapDisplay: document.getElementById("view-map")?.style.display,
+  }));
+  await page.click(".btn-top-sm");
+  await page.waitForTimeout(300);
+  const after = await page.evaluate(() => ({
+    topDisplay: document.getElementById("view-top")?.style.display,
+    mapDisplay: document.getElementById("view-map")?.style.display,
+    sheetOpen: document.getElementById("map-detail-sheet")?.classList.contains("map-detail-sheet--open"),
+  }));
+  if (after.topDisplay !== "flex") throw new Error("showTopView did not show view-top");
+  if (after.mapDisplay !== "none") throw new Error("showTopView did not hide view-map");
+  if (after.sheetOpen) throw new Error("showTopView left detail sheet open");
+}
+
+async function checkMapPinNoTopButton(page, file) {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(`${BASE}/${file}`, { waitUntil: "domcontentloaded", timeout: 60000 });
+  await page.waitForFunction(() => typeof showMapView === "function", null, { timeout: 30000 });
+  await page.evaluate(
+    ({ id, daily }) => {
+      weatherCache[id] = daily;
+      targetDayOffset = 0;
+      showMapView();
+    },
+    { id: RESORT_ID, daily: mockDaily() }
+  );
+  await page.waitForTimeout(500);
+  await page.evaluate(
+    ({ id }) => {
+      openFocusFromMap(id);
+    },
+    { id: RESORT_ID }
+  );
+  await page.waitForTimeout(800);
+  const hasTop = await page.evaluate(() => !!document.querySelector(".btn-top-sm"));
+  if (hasTop) throw new Error("map pin path must not render btn-top-sm");
 }
 
 async function main() {
@@ -239,6 +366,27 @@ async function main() {
       } catch (e) {
         failures.push(`${file} 320: ${e.message}`);
       }
+      try {
+        await checkRankingEntry320390(page, file);
+        passed++;
+        process.stdout.write("R");
+      } catch (e) {
+        failures.push(`${file} ranking 320/390: ${e.message}`);
+      }
+      try {
+        await checkTopButtonNav(page, file);
+        passed++;
+        process.stdout.write("T");
+      } catch (e) {
+        failures.push(`${file} top nav: ${e.message}`);
+      }
+      try {
+        await checkMapPinNoTopButton(page, file);
+        passed++;
+        process.stdout.write("M");
+      } catch (e) {
+        failures.push(`${file} map pin no-top: ${e.message}`);
+      }
     }
   } finally {
     await context.close();
@@ -246,13 +394,13 @@ async function main() {
   }
 
   console.log("");
-  const expected = 24 + 2 + 2;
+  const expected = 24 + 2 + 2 + 2 + 2 + 2;
   if (failures.length) {
     console.error(`check-focus-view-qa: ${passed}/${expected} passed`);
     failures.forEach((f) => console.error("  FAIL:", f));
     process.exit(1);
   }
-  console.log(`check-focus-view-qa: ${passed}/${expected} OK (24 matrix + BUG-07×2 + 320×2)`);
+  console.log(`check-focus-view-qa: ${passed}/${expected} OK (24 matrix + BUG-07×2 + 320×2 + ranking 320/390×2 + top-nav×2 + map-pin×2)`);
 }
 
 main().catch((e) => {

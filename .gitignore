@@ -1,0 +1,8 @@
+.env
+daily_prompt.txt
+node_modules/
+.venv/
+test-results/
+playwright-report/
+gemini_result_daily.md
+.cursor/debug*.log

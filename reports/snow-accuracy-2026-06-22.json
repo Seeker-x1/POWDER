@@ -1,0 +1,16 @@
+{
+  "generated_at": "2026-06-22T05:31:43.792Z",
+  "report_date": "2026-06-22",
+  "jma_observed_at_sample": "2026-03-18T18:00:00+09:00",
+  "summary": {
+    "total_resorts": 460,
+    "compared_count": 0,
+    "skipped_no_jma": 302,
+    "skipped_no_actual": 0,
+    "skipped_no_forecast": 158,
+    "overall_mae_cm": null
+  },
+  "mae_by_region": {},
+  "top_discrepancies": [],
+  "entries": []
+}

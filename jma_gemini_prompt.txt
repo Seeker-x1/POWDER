@@ -1,0 +1,19 @@
+あなたは気象庁 JMA の「防災情報 jmatile」タイル仕様に詳しいエンジニアです。次を検証し、箇条書きで簡潔に答えてください。
+
+## 検証済み（2025-03-17 時点で HTTP 200・image/png 確認済み）
+次の URL 形式は実在し PNG が返りました（例の時刻は可変）:
+`https://www.jma.go.jp/bosai/jmatile/data/snow/YYYYMMDDHHMMSS/none/YYYYMMDDHHMMSS/surf/snowf03h/6/56/24.png`
+- 時刻は日本標準時（JST）の壁時計とみなすのが正しいか。
+- 秒は実運用で 00 固定でよいか。00 以外の秒が使われるケースがあるか。
+
+## 私たちの Web アプリ実装
+- 3h 積雪予測: 要素名 `snowf03h`
+- 6h: `snowf06h`
+- テンプレート: `https://www.jma.go.jp/bosai/jmatile/data/snow/{timeStr}/none/{timeStr}/surf/{element}/{z}/{x}/{y}.png`
+- Leaflet XYZ（Web メルカトル）で z/x/y を計算。opacity 0.5。
+
+## 質問（必ず答える）
+1. 上記パス構造（`/snow/{t}/none/{t}/surf/`）は公式の bosai jmatile の慣例と一致しているか。よくある誤り（none の省略、時刻1つだけのパス等）があれば指摘。
+2. `snowf03h` / `snowf06h` の更新間隔の目安（プローブで 30 分刻みに遡るのは妥当か）。
+3. ズームレベル: 高ズームでタイルが無く真っ白に見える場合、推奨する maxNativeZoom やユーザー向け注意の一文。
+4. 追加でフロント実装すべき対策があれば1〜3個（コード例は不要、方針のみ）。

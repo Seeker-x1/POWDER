@@ -1,0 +1,461 @@
+﻿ID,スキー場名（日本語）,都道府県,地域（Region）,公式英語名称 (Official English Name)
+1,今金町種川スキー場,北海道,hokkaido,Imakane-cho Tanekawa Ski Area
+2,上ノ国町民スキー場,北海道,hokkaido,Kaminokuni Chomin Ski Area
+3,太鼓山スキー場,北海道,hokkaido,Taikoyama Ski Area
+4,大成スキー場,北海道,hokkaido,Taisei Ski Area
+5,富岡スキー場,北海道,hokkaido,Tomioka Ski Area
+6,丹羽スキー場,北海道,hokkaido,Niwa Ski Area
+7,ピリカスキー場,北海道,hokkaido,Pirika Ski Area
+8,旭ヶ丘スキー場,北海道,hokkaido,Asahigaoka Ski Area
+9,朝里川温泉スキー場,北海道,hokkaido,Asarigawa Onsen Ski Area
+10,IWANAI RESORT,北海道,hokkaido,IWANAI RESORT
+11,小樽天狗山スキー場,北海道,hokkaido,Otaru Tenguyama Ski Area
+12,キロロスノーワールド,北海道,hokkaido,KIRORO Snow World
+13,積丹町野外スポーツ林スキー場,北海道,hokkaido,Shakotan-cho Yagai Sports-rin Ski Area
+14,スノークルーズ・オーンズ,北海道,hokkaido,Snow Cruise Onze
+15,中山峠スキー場,北海道,hokkaido,Nakayamatoge Ski Area
+16,コンサドーレ仁木スキーパーク,北海道,hokkaido,Consadole Niki Ski Park
+17,ニセコアンヌプリ国際スキー場,北海道,hokkaido,Niseko Annupuri International Ski Area
+18,ニセコ東急 グラン・ヒラフ,北海道,hokkaido,Niseko Tokyu Grand HIRAFU
+19,ニセコHANAZONOリゾート,北海道,hokkaido,Niseko HANAZONO Resort
+20,ニセコビレッジスキーリゾート,北海道,hokkaido,Niseko Village Ski Resort
+21,ニセコモイワスキー場,北海道,hokkaido,Niseko Moiwa Ski Resort
+22,ルスツリゾート,北海道,hokkaido,Rusutsu Resort
+23,岩見沢萩の山市民スキー場,北海道,hokkaido,Iwamizawa Haginoyama Shimin Ski Area
+24,桂沢国設スキー場,北海道,hokkaido,Katsurazawa Kokusetsu Ski Area
+25,かもい岳国際スキー場,北海道,hokkaido,Kamoidake Kokusai Ski Area
+26,M's resort Ashibetsu,北海道,hokkaido,M's Resort Ashibetsu
+27,そっち岳スキー場,北海道,hokkaido,Socchidake Ski Area
+28,長沼スキー場,北海道,hokkaido,Naganuma Ski Area
+29,沼田町営高穂スキー場,北海道,hokkaido,Numata Choei Takaho Ski Area
+30,美唄国設スキー場,北海道,hokkaido,Bibai Kokusetsu Ski Area
+31,北海道グリーンランドホワイトパーク,北海道,hokkaido,Hokkaido Greenland White Park
+32,マウントレースイ,北海道,hokkaido,Yubari Resort Mount Racey
+33,旭岳スキーコース,北海道,hokkaido,Asahidake Ski Course
+34,伊ノ沢市民スキー場,北海道,hokkaido,Inosawa Shimin Ski Area
+35,音威富士スキー場,北海道,hokkaido,Otoifuji Ski Area
+36,上川町営中山スキー場,北海道,hokkaido,Kamikawa Choei Nakayama Ski Area
+37,カムイスキーリンクス,北海道,hokkaido,Kamui Ski Links
+38,キャンモアスキービレッジ,北海道,hokkaido,Canmore Ski Village
+39,国設占冠中央スキー場,北海道,hokkaido,Kokusetsu Shimukappu Chuo Ski Area
+40,国設南ふらのスキー場,北海道,hokkaido,Kokusetsu Minami Furano Ski Area
+41,サンタプレゼントパーク・マロースゲレンデ,北海道,hokkaido,Santa Present Park Mallows Gelande
+42,士別市あさひスキー場,北海道,hokkaido,Shibetsu-shi Asahi Ski Area
+43,士別市日向スキー場,北海道,hokkaido,Shibetsu-shi Hinata Ski Area
+44,下川スキー場,北海道,hokkaido,Shimokawa Ski Area
+45,大雪山黒岳スキー場,北海道,hokkaido,Daisetsuzan Kurodake Ski Area
+46,当麻町営スキー場,北海道,hokkaido,Toma Choei Ski Area
+47,中川町民スキー場,北海道,hokkaido,Nakagawa Chomin Ski Area
+48,中富良野北星スキー場,北海道,hokkaido,Nakafurano Hokusei Ski Area
+49,名寄ピヤシリスキー場,北海道,hokkaido,Nayoro Piyashiri Ski Area
+50,美瑛町民スキー場,北海道,hokkaido,Biei Chomin Ski Area
+51,ぴっぷスキー場,北海道,hokkaido,Pippu Ski Area
+52,日の出スキー場,北海道,hokkaido,Hinode Ski Area
+53,美深スキー場,北海道,hokkaido,Bifuka Ski Area
+54,富良野スキー場,北海道,hokkaido,Furano Ski Resort
+55,星野リゾート トマム,北海道,hokkaido,Hoshino Resorts TOMAMU
+56,ほろたちスキー場,北海道,hokkaido,Horotachi Ski Area
+57,和寒東山スキー場,北海道,hokkaido,Wassamu Higashiyama Ski Area
+58,網走レークビュースキー場,北海道,hokkaido,Abashiri Lake View Ski Area
+59,ウトロスキー場,北海道,hokkaido,Utoro Ski Area
+60,ウナベツスキー場,北海道,hokkaido,Unabetsu Ski Area
+61,えんがるロックバレースキー場,北海道,hokkaido,Engaru Rock Valley Ski Area
+62,置戸町南ヶ丘スキー場,北海道,hokkaido,Oketo-cho Minamigaoka Ski Area
+63,興部町営スキー場,北海道,hokkaido,Okoppe Choei Ski Area
+64,北見若松市民スキー場,北海道,hokkaido,Kitami Wakamatsu Shimin Ski Area
+65,清里町営緑スキー場,北海道,hokkaido,Kiyosato Choei Midori Ski Area
+66,五鹿山スキー場,北海道,hokkaido,Gokazan Ski Area
+67,佐呂間町営スキー場,北海道,hokkaido,Saroma Choei Ski Area
+68,滝上町営桜ヶ丘スキー場,北海道,hokkaido,Takinoue Choei Sakuragaoka Ski Area
+69,ノーザンアークリゾートスキー場,北海道,hokkaido,Northern Arc Resort Ski Area
+70,宮の森スキー場,北海道,hokkaido,Miyanomori Ski Area
+71,紋別市営大山スキー場,北海道,hokkaido,Monbetsu Shiei Oyama Ski Area
+72,湧別町五鹿山スキー場,北海道,hokkaido,Yubetsu-cho Gokazan Ski Area
+73,留辺蘂町八方台スキー場,北海道,hokkaido,Rubeshibe-cho Happodai Ski Area
+74,安平山スキー場,北海道,hokkaido,Anpeizan Ski Area
+75,ウインザースノービレッジ,北海道,hokkaido,Windsor Snow Village
+76,オロフレスキー場,北海道,hokkaido,Orofure Ski Area
+77,カルルス温泉サンライバスキー場,北海道,hokkaido,Karurusu Onsen Sanlaiva Ski Area
+78,穂別スキー場,北海道,hokkaido,Hobetsu Ski Area
+79,室蘭市だんパラスキー場,北海道,hokkaido,Muroran-shi Danpara Ski Area
+80,日高国際スキー場,北海道,hokkaido,Hidaka Kokusai Ski Area
+81,明野ヶ丘スキー場,北海道,hokkaido,Akenogaoka Ski Area
+82,サホロリゾート,北海道,hokkaido,Sahoro Resort
+83,新得山スキー場,北海道,hokkaido,Shintokuyama Ski Area
+84,ぬかびら源泉郷スキー場,北海道,hokkaido,Nukabira Gensenkyo Ski Area
+85,白銀台スキー場,北海道,hokkaido,Hakugindai Ski Area
+86,メムロスキー場,北海道,hokkaido,Memuro Ski Area
+87,阿寒ロイヤルバレイスキー場,北海道,hokkaido,Akan Royal Valley Ski Area
+88,国設阿寒湖畔スキー場,北海道,hokkaido,Kokusetsu Akankohan Ski Area
+89,標津町営金山スキー場,北海道,hokkaido,Shibetsu Choei Kanayama Ski Area
+90,アップルヒルスキー場,青森県,tohoku,Apple Hill Ski Area
+91,岩木山百沢スキー場,青森県,tohoku,Iwakisan Hyakuzawa Ski Area
+92,兎沢スキー場,青森県,tohoku,Tozawa Ski Area
+93,大鰐温泉スキー場,青森県,tohoku,Owani Onsen Ski Area
+94,於法岳スキー場,青森県,tohoku,Oho-dake Ski Area
+95,金ヶ沢スキー場,青森県,tohoku,Kanegasawa Ski Area
+96,釜臥山スキー場,青森県,tohoku,Kamafuseyama Ski Area
+97,五所川原市嘉瀬スキー場,青森県,tohoku,Goshogawara-shi Kase Ski Area
+98,七戸町営スキー場,青森県,tohoku,Shichinohe Choei Ski Area
+99,そうまロマントピアスキー場,青森県,tohoku,Soma Romantopia Ski Area
+100,創遊村229スキーランド,青森県,tohoku,Soyumura 229 Ski Land
+101,奥入瀬渓流温泉スキー場,青森県,tohoku,Oirase Keiryu Onsen Ski Area
+102,中泊町営宮野沢スキー場,青森県,tohoku,Nakadomari Choei Miyanosawa Ski Area
+103,青森スプリング・スキーリゾート,青森県,tohoku,Aomori Spring Ski Resort
+104,八甲田スキー場,青森県,tohoku,Hakkoda Ski Area
+105,manogamiスキー場,青森県,tohoku,manogami Ski Area
+106,みどりの大地とロマンの森公園スキー場,青森県,tohoku,Midori no Daichi to Roman no Mori Koen Ski Area
+107,リンクステーションヒルズ雲谷,青森県,tohoku,Link Station Hills Moya
+108,夜越山スキー場,青森県,tohoku,Yagoshiyama Ski Area
+109,安比高原スキー場,岩手県,tohoku,APPI Snow Mountain Resort
+110,網張温泉スキー場,岩手県,tohoku,Amihari Onsen Ski Area
+111,岩手高原スノーパーク,岩手県,tohoku,Iwate Kogen Snow Park
+112,奥中山高原スキー場,岩手県,tohoku,Okunakayama Kogen Ski Area
+113,国見平スキー場,岩手県,tohoku,Kunimidaira Ski Area
+114,夏油高原スキー場,岩手県,tohoku,Geto Kogen Ski Area
+115,雫石スキー場,岩手県,tohoku,Shizukuishi Ski Resort
+116,田山スキー場,岩手県,tohoku,Tayama Ski Area
+117,遠野市赤羽根スキー場,岩手県,tohoku,Tono-shi Akahane Ski Area
+118,西和賀町営湯田スキー場,岩手県,other,Nishiwaga Choei Yuda Ski Area
+119,八幡平リゾート下倉スキー場,岩手県,tohoku,Hachimantai Resort Shimokura Ski Area
+120,八幡平リゾートパノラマスキー場,岩手県,tohoku,Hachimantai Resort Panorama Ski Area
+121,花巻鉛温泉,岩手県,tohoku,Hanamaki Namari Onsen Ski Area
+122,平庭高原スキー場,岩手県,tohoku,Hiraniwa Kogen Ski Area
+123,ひめかゆスキー場,岩手県,tohoku,Himekayu Ski Area
+124,祭畤スノーパーク,岩手県,tohoku,Matsurube Snow Park
+125,盛岡市立生出スキー場,岩手県,tohoku,Morioka Shiritsu Oide Ski Area
+126,泉ヶ岳スキー場,宮城県,tohoku,Izumigatake Ski Area
+127,上野々スキー場,宮城県,tohoku,Uenono Ski Area
+128,オニコウベスキー場,宮城県,tohoku,Onikoube Ski Resort
+129,スプリングバレー泉高原スキー場,宮城県,tohoku,Spring Valley Izumi Kogen Ski Area
+130,みやぎ蔵王えぼしスキー場,宮城県,tohoku,Miyagi Zao Eboshi Resort
+131,みやぎ蔵王七ヶ宿スキー場,宮城県,tohoku,Miyagi Zao Shichikashuku Ski Area
+132,みやぎ蔵王白石スキー場,宮城県,tohoku,Miyagi Zao Shiroishi Ski Area
+133,みやぎ蔵王スキー場すみかわスノーパーク,宮城県,tohoku,Miyagi Zao Sumikawa Snow Park
+134,やくらいファミリースキー場,宮城県,tohoku,Yakurai Family Ski Area
+135,秋田八幡平スキー場,秋田県,tohoku,Akita Hachimantai Ski Area
+136,阿仁スキー場,秋田県,tohoku,Ani Ski Area
+137,稲川スキー場,秋田県,tohoku,Inakawa Ski Area
+138,大曲ファミリースキー場,秋田県,tohoku,Omagari Family Ski Area
+139,大台スキー場,秋田県,tohoku,Oh-dai Ski Area
+140,協和スキー場,秋田県,tohoku,Kyowa Ski Area
+141,後三年スキー場,秋田県,tohoku,Gosannen Ski Area
+142,ジュネス栗駒スキー場,秋田県,tohoku,Jeunesse Kurikoma Ski Area
+143,水晶山スキー場,秋田県,tohoku,Suishozan Ski Area
+144,太平山スキー場オーパス,秋田県,tohoku,Taiheizan Ski Area Opas
+145,たざわ湖スキー場,秋田県,tohoku,Tazawako Snow Resort
+146,鳥海高原矢島スキー場,秋田県,tohoku,Chokai Kogen Yashima Ski Area
+147,天下森スキー場,秋田県,tohoku,Tengamori Ski Area
+148,花輪スキー場,秋田県,tohoku,Hanawa Ski Area
+149,藤里町営スキー場,秋田県,tohoku,Fujisato Choei Ski Area
+150,薬師山スキー場,秋田県,tohoku,Yakushiyama Ski Area
+151,山形蔵王温泉スキー場,山形県,tohoku,Yamagata Zao Onsen Ski Resort
+152,Asahi自然観スノーパーク,山形県,tohoku,Asahi Shizenkan Snow Park
+153,秋山スキー場,山形県,tohoku,Akiyama Ski Area
+154,小野川温泉スキー場,山形県,tohoku,Onogawa Onsen Ski Area
+155,月山スキー場,山形県,tohoku,Gassan Ski Area
+156,神室スキー場,山形県,tohoku,Green Valley Kamuro Ski Area
+157,櫛引たらのきだいスキー場,山形県,tohoku,Kushibiki Taranokidai Ski Area
+158,黒伏高原スノーパークジャングル・ジャングル,山形県,tohoku,Kurobushi Kogen Snow Park Jangle Jungle
+159,小鳥山スキー場,山形県,tohoku,Kotoriyama Ski Area
+160,蔵王猿倉スキー場,山形県,tohoku,Zao Sarukura Ski Area
+161,蔵王ライザスキーワールド,山形県,tohoku,Zao Liza Ski World
+162,白鷹町営スキー場,山形県,tohoku,Shirataka Choei Ski Area
+163,新庄市民スキー場,山形県,tohoku,Shinjo Shimin Ski Area
+164,天元台高原スキー場,山形県,tohoku,Tengendai Kogen Ski Area
+165,天童高原スキー場,山形県,tohoku,Tendo Kogen Ski Area
+166,手ノ子スキー場,山形県,tohoku,Tenoko Ski Area
+167,西川町民スキー場,山形県,tohoku,Nishikawa Chomin Ski Area
+168,羽黒山スキー場,山形県,tohoku,Hagurosan Ski Area
+169,花笠高原スキー場,山形県,tohoku,Hanagasa Kogen Ski Area
+170,松山スキー場,山形県,tohoku,Matsuyama Ski Area
+171,やまがた赤倉温泉スキー場,山形県,tohoku,Yamagata Akakura Onsen Ski Area
+172,蔵王温泉スキー場,山形県,tohoku,Zao Onsen Ski Resort
+173,湯殿山スキー場,山形県,tohoku,Yudonosan Ski Area
+174,湯の台スキー場,山形県,tohoku,Yunodai Ski Area
+175,横根スキー場,山形県,tohoku,Yokone Ski Area
+176,米沢スキー場,山形県,tohoku,Yonezawa Ski Area
+177,星野リゾート ネコマ マウンテン,福島県,tohoku,Hoshino Resorts NEKOMA Mountain
+178,猪苗代スキー場,福島県,tohoku,Inawashiro Ski Resort
+179,裏磐梯スキー場,福島県,tohoku,Urabandai Ski Area
+180,グランデコスノーリゾート,福島県,tohoku,Grandeco Snow Resort
+181,沼尻スキー場,福島県,tohoku,Numajiri Ski Area
+182,星野リゾート ネコマ マウンテン,福島県,tohoku,Hoshino Resorts NEKOMA Mountain
+183,三ノ倉スキー場,福島県,tohoku,Sannokura Ski Area
+184,リステルスキーファンタジア,福島県,tohoku,Listel Ski Fantasia
+185,会津高原だいくらスキー場,福島県,tohoku,Aizu Kogen Daikura Ski Area
+186,会津高原たかつえスキー場,福島県,tohoku,Aizu Kogen Takatsue Ski Resort
+187,会津高原高畑スキー場,福島県,tohoku,Aizu Kogen Takahata Ski Area
+188,会津高原南郷スキー場,福島県,tohoku,Aizu Kogen Nango Ski Area
+189,只見スキー場,福島県,tohoku,Tadami Ski Area
+190,檜枝岐温泉スキー場,福島県,tohoku,Hinoemata Onsen Ski Area
+191,フェアリーランドかねやまスキー場,福島県,tohoku,Fairy Land Kaneyama Ski Area
+192,あだたら高原スキー場,福島県,tohoku,Adatara Kogen Ski Resort
+193,二本松塩沢スキー場,福島県,tohoku,Nihonmatsu Shiozawa Ski Area
+194,エーデルワイス スキーリゾート,栃木県,kanto,Edelweiss Ski Resort
+195,日光湯元温泉スキー場,栃木県,kanto,Nikko Yumoto Onsen Ski Area
+196,ハンターマウンテン塩原,栃木県,kanto,Hunter Mountain Shiobara
+197,オグナほたかスキー場,群馬県,kanto,Oguna Hotaka Ski Area
+198,かたしな高原スキー場,群馬県,kanto,Katashina Kogen Ski Resort
+199,川場スキー場,群馬県,kanto,Kawaba Ski Resort
+200,スノーパーク尾瀬戸倉,群馬県,kanto,Snow Park Oze Tokura
+201,たんばらスキーパーク,群馬県,kanto,Tambara Ski Park
+202,ホワイトワールド尾瀬岩鞍,群馬県,kanto,White World Oze Iwakura
+203,丸沼高原スキー場,群馬県,kanto,Marunuma Kogen Ski Resort
+204,奥利根スノーパーク,群馬県,kanto,Okutone Snow Park
+205,Mt.T by 星野リゾート,群馬県,kanto,Mt.T by Hoshino Resorts
+206,ノルンみなかみスキー場,群馬県,kanto,Norn Minakami Ski Resort
+207,ホワイトバレースキー場,群馬県,kanto,White Valley Ski Resort
+208,水上高原スキーリゾート,群馬県,kanto,Minakami Kogen Ski Resort
+209,水上高原藤原スキー場,群馬県,kanto,Minakami Kogen Fujiwara Ski Resort
+210,群馬みなかみほうだいぎスキー場,群馬県,kanto,Gunma Minakami Hodaigi Mountain Resort
+211,鹿沢スノーエリア,群馬県,kanto,Kazawa Snow Area
+212,軽井沢スノーパーク,群馬県,kanto,Karuizawa Snow Park
+213,草津温泉スキー場,群馬県,kanto,Kusatsu Onsen Ski Resort
+214,パルコール嬬恋スキーリゾート,群馬県,kanto,Palcall Tsumagoi Ski Resort
+215,万座温泉スキー場,群馬県,kanto,Manza Onsen Ski Resort
+216,赤城山スキー場,群馬県,kanto,Akagiyama Ski Area
+217,赤沢スキー場,群馬県,kanto,Akasawa Ski Area
+218,狭山スキー場,埼玉県,kanto,Sayama Ski Area
+219,スノーヴァ新横浜,神奈川県,kanto,Snova Shin-Yokohama
+220,スノーヴァ溝の口,神奈川県,kanto,Snova Mizonokuchi
+221,カムイみさかスキー場,山梨県,chubu,Kamui Misaka Ski Area
+222,サンメドウズ清里スキー場,山梨県,chubu,Sun Meadows Kiyosato Ski Area
+223,ふじてんスノーリゾート,山梨県,chubu,Fujiten Snow Resort
+224,高峰マウンテンパーク,長野県,nagano,Takamine Mountain Park
+225,いいづなリゾートスキー場,長野県,nagano,Iizuna Resort Ski Area
+226,軽井沢プリンスホテルスキー場,長野県,nagano,Prince Snow Resorts KARUIZAWA
+227,北志賀高原小丸山スキー場,長野県,nagano,Kita Shiga Kogen Komaruyama Ski Area
+228,北志賀高井富士スキー場,長野県,nagano,X-JAM Takaifuji Ski Area
+229,スノーリゾートロマンスの神様,長野県,nagano,Snow Resort Romance no Kamisama
+230,牧の入スノーパーク,長野県,nagano,Makinoiri Snow Park
+231,黒姫高原スノーパーク,長野県,nagano,Kurohime Kogen Snow Park
+232,さかえ倶楽部スキー場,長野県,nagano,Sakae Club Ski Area
+233,佐久スキーガーデンパラダ,長野県,nagano,Saku Ski Garden Parada
+234,サンバレースキー場,長野県,nagano,Sun Valley Ski Area
+235,ジャイアントスキー場,長野県,nagano,Giant Ski Area
+236,蓮池スキー場,長野県,nagano,Hasuike Ski Area
+237,発哺ブナ平スキー場,長野県,nagano,Hoppo Bunadaira Ski Area
+238,丸池スキー場,長野県,nagano,Maruike Snow Land
+239,一の瀬ダイヤモンドスキー場,長野県,nagano,Ichinose Diamond Ski Area
+240,一の瀬ファミリースキー場,長野県,nagano,Ichinose Family Ski Area
+241,一の瀬山の神スキー場,長野県,nagano,Ichinose Yamanokami Ski Area
+242,高天ヶ原マンモススキー場,長野県,nagano,Takamagahara Mammoth Ski Area
+243,タンネの森オコジョスキー場,長野県,nagano,Tanne no Mori Okojo Ski Area
+244,寺小屋スキー場,長野県,nagano,Terakoya Ski Area
+245,西館山スキー場,長野県,nagano,Nishitateyama Ski Area
+246,東館山スキー場,長野県,nagano,Higashitateyama Ski Area
+247,奥志賀高原スキー場,長野県,nagano,Okushiga Kogen Ski Resort
+248,焼額山スキー場,長野県,nagano,Yakebitaiyama Ski Area
+249,熊の湯スキー場,長野県,nagano,Kumanoyu Ski Area
+250,横手山・渋峠スキー場,長野県,nagano,Yokoteyama Shibutoge Ski Area
+251,菅平高原スキー場,長野県,nagano,Sugadaira Kogen Snow Resort
+252,タングラムスキーサーカス,長野県,nagano,Tangram Ski Circus
+253,戸隠スキー場,長野県,nagano,Togakushi Ski Area
+254,戸狩温泉スキー場,長野県,nagano,Togari Onsen Ski Area
+255,野沢温泉スキー場,長野県,nagano,Nozawa Onsen Snow Resort
+256,番所ヶ原スキー場,長野県,nagano,Banshogahara Ski Area
+257,聖高原スキー場,長野県,nagano,Hijiri Kogen Ski Area
+258,斑尾高原スキー場,長野県,nagano,Madarao Mountain Resort
+259,ニンジャスノーハイランド,長野県,nagano,Rewild Ninja Snow Highland
+260,山田温泉キッズスノーパーク,長野県,nagano,Yamada Onsen Kids Snow Park
+261,YAMABOKUワイルドスノーパーク,長野県,nagano,Yamaboku Wild Snow Park
+262,湯の丸スキー場,長野県,nagano,Yunomaru Ski Area
+263,よませ温泉スキー場,長野県,nagano,Yomase Onsen Ski Area
+264,竜王スキーパーク,長野県,nagano,Ryuoo Ski Park
+265,あさひプライムスキー場,長野県,nagano,Asahi Prime Ski Area
+266,御嶽スキー場,長野県,nagano,Ontake Ski Resort
+267,開田高原マイアスキー場,長野県,nagano,Kaida Kogen Mia Ski Resort
+268,きそふくしまスキー場,長野県,nagano,Kiso Fukushima Ski Area
+269,車山高原スキー場,長野県,nagano,Kurumayama Kogen SKYPARK Ski Area
+270,小海リエックス・スキーバレー,長野県,nagano,Chateraise Ski Valley Koumi
+271,駒ヶ根高原スキー場,長野県,nagano,Komagane Ski Resort
+272,治部坂高原スキー場,長野県,nagano,Jibuzaka Kogen Ski Area
+273,シャトレーゼスキーリゾート八ヶ岳,長野県,nagano,Chateraise Ski Resort Yatsugatake
+274,白樺高原国際スキー場,長野県,nagano,Shirakaba Kogen Kokusai Ski Area
+275,白樺湖ロイヤルヒルスキー場,長野県,nagano,Shirakabako Royal Hill Ski Area
+276,しらかば2in1スキー場,長野県,nagano,Shirakaba 2 in 1 Ski Area
+277,白樺リゾートスキー場,長野県,nagano,Shirakaba Resort Ski Area
+278,信州松本野麦峠スキー場,長野県,nagano,Shinshu Matsumoto Nomugitoge Ski Area
+279,中央アルプス千畳敷スキー場,長野県,nagano,Chuo Alps Senjojiki Ski Area
+280,蓼科東急スキー場,長野県,nagano,Tateshina Tokyu Ski Area
+281,中央道伊那スキーリゾート,長野県,nagano,Chuo-do Ina Ski Resort
+282,ピラタス蓼科スノーリゾート,長野県,nagano,Pilatus Tateshina Snow Resort
+283,平谷高原赤坂スキー場,長野県,nagano,Hiraya Kogen Akasaka Ski Area
+284,ファミリーゲレンデ霧ヶ峰,長野県,nagano,Family Gelande Kirigamine Ski Resort
+285,富士見高原スキー場,長野県,nagano,Fujimi Kogen Ski Area
+286,富士見パノラマリゾート,長野県,nagano,Fujimi Panorama Resort
+287,ブランシュたかやまスキーリゾート,長野県,nagano,Blanche Takayama Ski Resort
+288,ヘブンスそのはらSNOW WORLD,長野県,nagano,Heavens Sonohara Snow World
+289,Mt.乗鞍,長野県,nagano,Mt. Norikura Snow Resort
+290,八千穂高原スキー場,長野県,nagano,Yachiho Kogen Ski Resort
+291,やぶはら高原スキー場,長野県,nagano,Yabuhara Kogen Ski Area
+292,鹿島槍スキー場 ファミリーパーク,長野県,nagano,Kashimayari Family Park
+293,爺ヶ岳スキー場,長野県,nagano,Jiigatake Ski Area
+294,栂池高原スキー場,長野県,nagano,Tsugaike Mountain Resort
+295,白馬岩岳スキー場,長野県,nagano,Hakuba Iwatake Snow Field
+296,白馬五竜スキー場,長野県,nagano,ABLE Hakuba Goryu Snow Resort
+297,白馬コルチナ国際スキー場,長野県,nagano,Hakuba Cortina Ski Resort
+298,白馬さのさかスキー場,長野県,nagano,White Resort Hakuba Sanosaka
+299,白馬八方尾根スキー場,長野県,nagano,Hakuba Happo-one Snow Resort
+300,Hakuba47ウィンタースポーツパーク,長野県,nagano,Hakuba 47 Winter Sports Park
+301,白馬乗鞍温泉スキー場,長野県,nagano,Hakuba Norikura Onsen Ski Area
+302,石打丸山スキー場,新潟県,niigata,Ishiuchi Maruyama Ski Area
+303,一本杉スキー場,新潟県,niigata,Ipponsugi Ski Area
+304,岩原スキー場,新潟県,niigata,Iwappara Ski Area
+305,奥只見丸山スキー場,新潟県,niigata,Okutadami Maruyama Ski Area
+306,GALA湯沢スキー場,新潟県,niigata,GALA Yuzawa Snow Resort
+307,神立スノーリゾート,新潟県,niigata,Kandatsu Snow Resort
+308,小出スキー場,新潟県,niigata,Koide Ski Area
+309,国営越後丘陵公園,新潟県,niigata,Kokuei Echigo Kyuryo Koen
+310,古志高原スキー場,新潟県,niigata,Koshi Kogen Ski Area
+311,八海山麓スキー場,新潟県,niigata,Hakkaisanroku Ski Area
+312,シャトー塩沢スキー場,新潟県,niigata,Chateau Shiozawa Ski Area
+313,上越国際スキー場,新潟県,niigata,Joetsu Kokusai Ski Resort
+314,須原スキー場,新潟県,niigata,Suhara Ski Area
+315,舞子スノーリゾート,新潟県,niigata,Maiko Snow Resort
+316,高柳ガルルのスキー場,新潟県,niigata,Takayanagi Garuru Ski Area
+317,十日町市松代ファミリースキー場,新潟県,niigata,Tokamachi-shi Matsudai Family Ski Area
+318,とちおファミリースキー場,新潟県,niigata,Tochio Family Ski Area
+319,長岡市営スキー場,新潟県,niigata,Nagaoka Shiei Ski Area
+320,中里スノーウッドスキー場,新潟県,niigata,Nakasato Snow Wood Ski Area
+321,NASPAスキーガーデン,新潟県,niigata,Naspa Ski Garden
+322,ニュー・グリーンピア津南スキー場,新潟県,niigata,New Greenpia Tsunan Ski Area
+323,Mt.Naeba,新潟県,niigata,Mt. Naeba
+324,かぐらスキー場,新潟県,niigata,Prince Snow Resorts KAGURA
+325,苗場スキー場,新潟県,niigata,Prince Snow Resorts NAEBA
+326,マウンテンパーク津南スキー場,新潟県,niigata,Mountain Park Tsunan Ski Area
+327,松之山温泉スキー場,新潟県,niigata,Matsunoyama Onsen Snow Park
+328,六日町八海山スキー場,新潟県,niigata,Muikamachi Hakkaisan Ski Area
+329,ムイカスノーリゾート,新潟県,niigata,Muica Snow Resort
+330,薬師スキー場,新潟県,niigata,Yakushi Ski Area
+331,湯沢高原スキー場,新潟県,niigata,Yuzawa Kogen Ski Area
+332,湯沢中里スキー場,新潟県,niigata,Yuzawa Nakazato Snow Resort
+333,湯沢パークスキー場,新潟県,niigata,Yuzawa Park Ski Area
+334,赤倉温泉スキー場,新潟県,niigata,Akakura Onsen Ski Area
+335,赤倉中央スキー場,新潟県,niigata,Akakura Chuo Ski Area
+336,赤倉観光リゾートスキー場,新潟県,niigata,Akakura Kanko Resort Ski Area
+337,京王赤倉チャンピオンスキー場,新潟県,niigata,Keio Akakura Champion Ski Area
+338,池の平温泉スキー場,新潟県,niigata,Ikenotaira Onsen Ski Area
+339,妙高杉ノ原スキー場,新潟県,niigata,Myoko Suginohara Ski Resort
+340,休暇村妙高スキー場,新潟県,niigata,Kyukamura Myoko Ski Area
+341,関温泉スキー場,新潟県,niigata,Seki Onsen Ski Area
+342,キューピットバレイ,新潟県,niigata,Cupid Valley
+343,金谷山スキー場,新潟県,niigata,Kanayayama Ski Area
+344,シャルマン火打スキー場,新潟県,niigata,Charmant Hiuchi Ski Resort
+345,糸魚川シーサイドバレースキー場,新潟県,niigata,Itoigawa Seaside Valley Ski Area
+346,アライマウンテンリゾート,新潟県,niigata,Lotte Arai Resort
+347,国設胎内スキー場,新潟県,niigata,Kokusetsu Tainai Ski Area
+348,NINOX SNOW PARK,新潟県,niigata,Ninox Snow Park
+349,冬鳥越スキーガーデン,新潟県,niigata,Fuyudorigoe Ski Garden
+350,三川温泉スキー場,新潟県,niigata,Mikawa Onsen Ski Area
+351,佐渡市営平スキー場,新潟県,niigata,Sado Shiei Taira Ski Area
+352,宇奈月温泉スキー場,富山県,chubu,Unazuki Onsen Ski Area
+353,立山山岳スキー場,富山県,chubu,Tateyama Sangaku Ski Area
+354,立山山麓スキー場,富山県,chubu,Tateyama Sanroku Ski Area
+355,牛岳温泉スキー場,富山県,chubu,Ushidake Onsen Ski Area
+356,となみ夢の平スキー場,富山県,chubu,Tonami Yumenotaira Ski Area
+357,イオックス・アローザ,富山県,chubu,IOX-AROSA Ski Resort
+358,タカンボースキー場,富山県,chubu,Takanbo Ski Area
+359,たいらスキー場,富山県,chubu,Taira Ski Area
+360,大倉岳高原スキー場,石川県,chubu,Okuradake Kogen Ski Area
+361,金沢市営医王山スキー場,石川県,chubu,Kanazawa Shiei Iohzan Ski Area
+362,七尾コロサスキー場,石川県,chubu,Nanao Korosa Ski Area
+363,白山一里野温泉スキー場,石川県,chubu,Hakusan Ichirino Onsen Ski Area
+364,白山セイモアスキー場,石川県,chubu,Hakusan Seymour Ski Area
+365,莇生田スキー場,福井県,chubu,Azoda Ski Area
+366,今庄365スキー場,福井県,chubu,Imajo 365 Ski Area
+367,九頭竜スキー場,福井県,chubu,Kuzuryu Ski Area
+368,新保ファミリースキー場,福井県,chubu,Shinbo Family Ski Area
+369,AM福井勝山マウンテンリゾート,福井県,chubu,Ski Jam Katsuyama
+370,福井和泉スキー場,福井県,chubu,Fukui Izumi Ski Area
+371,スノーパーク イエティ,静岡県,chubu,Snow Park Yeti
+372,リバウェル井川スキー場,静岡県,chubu,Riverwell Ikawa Ski Area
+373,アウトドアイン母袋スキー場,岐阜県,chubu,Outdoor Inn Motai
+374,めいほうスキー場,岐阜県,chubu,Meiho Ski Resort
+375,ホワイトピアたかす,岐阜県,chubu,White Pia Takasu
+376,郡上ヴァカンス村スキー場,岐阜県,chubu,Gujo Vacance Mura Ski Area
+377,ひるがの高原スキー場,岐阜県,chubu,Hirugano Kogen Ski Area
+378,鷲ヶ岳スキー場,岐阜県,chubu,Washigatake Ski Area
+379,ダイナランド,岐阜県,chubu,Dynaland
+380,高鷲スノーパーク,岐阜県,chubu,Takasu Snow Park
+381,ウイングヒルズ白鳥リゾート,岐阜県,chubu,Winghills Shirotori Resort
+382,スノーウェーブパーク白鳥高原,岐阜県,chubu,Snow Wave Park Shiratori Kogen
+383,平湯温泉スキー場,岐阜県,chubu,Hirayu Onsen Ski Area
+384,荘川高原スキー場,岐阜県,chubu,Shokawa Kogen Ski Area
+385,飛騨ほおのき平スキー場,岐阜県,chubu,Hida Honokidaira Ski Area
+386,高山市民スキー場,岐阜県,chubu,Takayama Shimin Ski Area
+387,飛騨高山スキー場,岐阜県,chubu,Hida Takayama Ski Area
+388,ひだ舟山リゾートアルコピア,岐阜県,chubu,Hida Funayama Snow Resort Alcopia
+389,ひだ流葉スキー場,岐阜県,chubu,Star Spur Ryokufu Resort Hida Nagareha
+390,飛騨かわいスキー場,岐阜県,chubu,Hida Kawai Ski Area
+391,茶臼山高原スキー場,愛知県,chubu,Chausuyama Kogen Ski Area
+392,御在所スキー場,三重県,kansai,Gozaisho Ski Area
+393,グランスノー奥伊吹,滋賀県,kansai,Gransnow Okuibuki
+394,びわ湖バレイ,滋賀県,kansai,Biwako Valley
+395,Ohana Resort,滋賀県,kansai,Ohana Resort
+396,箱館山スキー場,滋賀県,kansai,Hakodateyama Ski Area
+397,朽木スキー場,滋賀県,kansai,Kutsuki Ski Area
+398,マキノスキー場,滋賀県,kansai,Makino Kogen Ski Area
+399,赤子山スキー場,滋賀県,kansai,Akagoyama Ski Area
+400,余呉高原リゾート・ヤップスキー場,滋賀県,kansai,Yogo Kogen Resort Yap
+401,京都広河原スキー場,京都府,kansai,Kyoto Hirogawara Ski Area
+402,森林公園スイス村スキー場,京都府,kansai,Swiss Mura Ski Area
+403,神鍋高原スキー場,兵庫県,kansai,Kannabe Kogen Ski Area
+404,奥神鍋スキー場,兵庫県,kansai,Oku Kannabe Ski Area
+405,万場スキー場,兵庫県,kansai,Manba Ski Area
+406,但馬牧場公園スキー場,兵庫県,kansai,Tajima Bokujo Koen Ski Area
+407,おじろスキー場,兵庫県,kansai,Ojiro Ski Area
+408,スカイバレイスキー場,兵庫県,kansai,Sky Valley Ski Resort
+409,ハチ北高原スキー場,兵庫県,kansai,Hachi Kita Kogen Ski Area
+410,ハチ高原スキー場,兵庫県,kansai,Hachi Kogen Ski Area
+411,ハイパーボウル東鉢,兵庫県,kansai,Hyperbowl Tohachi Ski Area
+412,氷ノ山国際スキー場,兵庫県,kansai,Hyonosen Kokusai Ski Area
+413,若杉高原おおやスキー場,兵庫県,kansai,Wakasugi Kogen Oya Ski Area
+414,ばんしゅう戸倉スノーパーク,兵庫県,kansai,Banshu Tokura Snow Park
+415,ちくさ高原スキー場,兵庫県,kansai,Chikusa Kogen Ski Area
+416,峰山高原リゾート ホワイトピーク,兵庫県,kansai,Mineyama Kogen Resort WHITE PEAK
+417,六甲山スノーパーク,兵庫県,kansai,Rokkosan Snow Park
+418,スノーパーク洞川,奈良県,kansai,Snow Park Dorogawa
+419,高野山スキー場,和歌山県,kansai,Koyasan Ski Area
+420,鏡ヶ成スキー場,鳥取県,chugoku,Kagamiganaru Ski Area
+421,だいせんホワイトリゾート,鳥取県,chugoku,Daisen White Resort
+422,大山ますみず高原スノーパーク,鳥取県,chugoku,Daisen Masumizu Kogen Snow Park
+423,わかさ氷ノ山スキー場,鳥取県,chugoku,Wakasa Hyonosen Ski Area
+424,安蔵公園スキー場,鳥取県,chugoku,Azo Koen Ski Area
+425,琴引フォレストパーク,島根県,chugoku,Kotobiki Forest Park
+426,三井野原スキー場,島根県,chugoku,Miinohara Ski Area
+427,瑞穂ハイランド,島根県,chugoku,Mizuho Highland
+428,いぶきの里スキー場,岡山県,chugoku,Ibuki no Sato Ski Area
+429,恩原高原スキー場,岡山県,chugoku,Onbara Kogen Ski Area
+430,ひるぜんベアバレースキー場,岡山県,chugoku,Hiruzen Bear Valley Ski Area
+431,ひるぜんキッズスノーパーク,岡山県,chugoku,Hiruzen Kids Snow Park
+432,津黒高原スキー場,岡山県,chugoku,Tsuguro Kogen Ski Area
+433,恐羅漢スキー場,広島県,chugoku,Osorakan Snow Park
+434,道後山高原スキー場,広島県,chugoku,Dogoyama Kogen Ski Area
+435,芸北高原大佐スキー場,広島県,chugoku,Geihoku Kogen Osa Ski Area
+436,県立もみのき森林公園,広島県,chugoku,Mominoki Shinrin Koen
+437,ひろしま県民の森スキー場,広島県,chugoku,Hiroshima Kenmin no Mori
+438,めがひらスキー場,広島県,chugoku,Megahira Onsen Megahira
+439,やわたハイランド191リゾート,広島県,chugoku,Yawata Highland 191 Resort
+440,ユートピアサイオト,広島県,chugoku,Utopia Saioto
+441,りんご今日話国スキー場,広島県,chugoku,Ringo Kyowakoku Ski Area
+442,十種ヶ峰スキー場,山口県,chugoku,Tokusagamine Ski Area
+443,石鎚スキー場,愛媛県,shikoku,Ishizuchi Ski Area
+444,久万スキーランド,愛媛県,shikoku,Kuma Ski Land
+445,SOL-FAオダスキーゲレンデ,愛媛県,shikoku,SOL-FA Oda Ski Area
+446,プラーナ,愛媛県,shikoku,Plana Ski Area
+447,井川スキー場腕山,徳島県,shikoku,Ikawa Kainayama Ski Area
+448,剣山スキー場,徳島県,shikoku,Kenzan Ski Area
+449,九重森林公園スキー場,大分県,kyushu,Kujyu Shinrin Koen Ski Area
+450,五ヶ瀬ハイランドスキー場,宮崎県,kyushu,Gokase Highland Ski Area
+451,ぶどうスノーリゾート,新潟県,niigata,Budoh Snow Resort
+452,札幌藻岩山スキー場,北海道,hokkaido,Sapporo Moiwayama Ski Area
+453,札幌国際スキー場,北海道,hokkaido,Sapporo Kokusai Ski Area
+454,サッポロテイネ,北海道,hokkaido,Sapporo Teine
+455,さっぽろばんけいスキー場,北海道,hokkaido,Sapporo Bankei Ski Area
+456,箕輪スキー場,福島県,tohoku,Minowa Ski Area
+457,菅平高原奥ダボススキー場,長野県,nagano,Sugadaira Kogen Oku Davos Ski Area
+458,菅平高原パインビークスキー場,長野県,nagano,Sugadaira Kogen Pine Beak Ski Area
+459,菅平高原天狗スキー場,長野県,nagano,Sugadaira Kogen Tengu Ski Area
+460,木島平スキー場,長野県,nagano,Kijimadaira Ski Area

@@ -1,0 +1,16 @@
+{
+  "name": "powder",
+  "version": "1.0.0",
+  "description": "Ski powder hunter - resort names EN generator",
+  "private": true,
+  "scripts": {
+    "generate-resort-names-en": "node scripts/generate-resort-names-en.js"
+  },
+  "dependencies": {
+    "kuroshiro": "^1.2.0",
+    "kuroshiro-analyzer-kuromoji": "^1.1.0"
+  },
+  "devDependencies": {
+    "playwright": "^1.58.2"
+  }
+}

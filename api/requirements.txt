@@ -1,0 +1,6 @@
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+httpx==0.26.0
+# C（気象庁GRIB2）を使う場合のみ入れる
+# cfgrib==0.9.10.4
+# xarray==2024.1.0

@@ -1,0 +1,7 @@
+{
+  "default": { "base_m": 500, "factor_per_m": 0.00025, "max": 1.5 },
+  "by_region": {
+    "hokkaido": { "factor_per_m": 0.0003, "max": 1.6 }
+  },
+  "by_resort_id": {}
+}

@@ -1,0 +1,40 @@
+# 毎日 JST 1:10 頃に前日(JST)のアメダス時間別実績を取得し data/jma-prevday-hourly.json をコミット
+name: Update JMA prev-day hourly
+
+on:
+  schedule:
+    - cron: "10 1 * * *"   # 毎日 1:10 JST（job の TZ: Asia/Tokyo）
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Tokyo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "nothing"
+
+      - name: Fetch JMA prev-day hourly
+        run: node scripts/fetch-jma-prevday-hourly.js
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/jma-prevday-hourly.json
+          if git diff --staged --quiet; then
+            echo "No changes to jma-prevday-hourly.json."
+          else
+            git commit -m "chore: update JMA prev-day hourly cache [automated]"
+            git push
+          fi

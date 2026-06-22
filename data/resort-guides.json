@@ -1,0 +1,16 @@
+{
+  "baseUrl": "https://guides.japowserch.com",
+  "guides": {
+    "8": { "registryId": "asahigaoka" },
+    "35": { "registryId": "otoifuji" },
+    "39": { "registryId": "shimukappu" },
+    "40": { "registryId": "minami-furano" },
+    "50": { "registryId": "biei" },
+    "58": { "registryId": "abashiri-lv" },
+    "60": { "registryId": "unabetsu" },
+    "65": { "registryId": "kiyosato" },
+    "66": { "registryId": "gokazan" },
+    "98": { "registryId": "sichinohe" },
+    "326": { "registryId": "tsunan" }
+  }
+}

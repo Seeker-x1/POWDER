@@ -17,6 +17,8 @@ const JMA_MXSNC_CSV_URL = "https://www.data.jma.go.jp/stats/data/mdrr/snc_rct/al
 const MAX_STATION_DISTANCE_KM = 80;
 /** 標高差 1m あたりの距離ペナルティ km（500m差 → +1km） */
 const PENALTY_PER_M = 0.002;
+/** amedas 座標が積雪CSV番号と不一致の観測所（自動選定から除外） */
+const BLOCKED_AMEDAS_STATION_NOS = new Set(["13061"]);
 
 function extractResorts(html) {
   const startMarker = "const RESORTS = ";
@@ -65,6 +67,28 @@ function stationSelectionMetrics(resort, stationInfo) {
   const elevationPenaltyKm = elevDiffM * PENALTY_PER_M;
   const selectionScore = distKm + elevationPenaltyKm;
   return { distKm, elevDiffM, selectionScore };
+}
+
+/** 積雪CSVの観測所番号を amedas-stations.json のキーに正規化する */
+function remapStationKeyedData(dataByCsvNo, csvToAmedasAlias) {
+  const out = {};
+  for (const [csvNo, data] of Object.entries(dataByCsvNo)) {
+    const amedasNo = csvToAmedasAlias[csvNo] || csvNo;
+    out[amedasNo] = data;
+  }
+  return out;
+}
+
+function loadCsvToAmedasAlias() {
+  const aliasPath = path.join(__dirname, "..", "data", "jma-station-csv-alias.json");
+  if (!fs.existsSync(aliasPath)) return {};
+  const raw = JSON.parse(fs.readFileSync(aliasPath, "utf8"));
+  const alias = {};
+  for (const [csvNo, amedasNo] of Object.entries(raw)) {
+    if (csvNo.startsWith("_")) continue;
+    alias[String(csvNo)] = String(amedasNo);
+  }
+  return alias;
 }
 
 /**
@@ -214,9 +238,14 @@ async function main() {
     if (res.ok) mxsncCsvText = await res.text();
   } catch (_) {}
 
-  const snowByStation = parseSnowCsv(sncCsvText);
-  const sndallByStation = sndallCsvText ? parseSndallCsv(sndallCsvText) : {};
-  const mxsncByStation = mxsncCsvText ? parseMxsncCsv(mxsncCsvText) : {};
+  const csvToAmedasAlias = loadCsvToAmedasAlias();
+  const snowByStation = remapStationKeyedData(parseSnowCsv(sncCsvText), csvToAmedasAlias);
+  const sndallByStation = sndallCsvText
+    ? remapStationKeyedData(parseSndallCsv(sndallCsvText), csvToAmedasAlias)
+    : {};
+  const mxsncByStation = mxsncCsvText
+    ? remapStationKeyedData(parseMxsncCsv(mxsncCsvText), csvToAmedasAlias)
+    : {};
   const stationNosInCsv = new Set(Object.keys(snowByStation));
   const stationsWithCoords = Object.entries(stations).filter(([no]) => stationNosInCsv.has(no));
 
@@ -230,14 +259,17 @@ async function main() {
       best = { ...metrics, stationNo: overrideStationNo };
     } else {
       for (const [no, info] of stationsWithCoords) {
+        if (BLOCKED_AMEDAS_STATION_NOS.has(no)) continue;
         const metrics = stationSelectionMetrics(resort, info);
         if (metrics.selectionScore < best.selectionScore) {
           best = { ...metrics, stationNo: no };
         }
       }
     }
-    if (best.stationNo != null && best.selectionScore <= MAX_STATION_DISTANCE_KM) {
-      const snow = snowByStation[best.stationNo];
+    const snow = best.stationNo != null ? snowByStation[best.stationNo] : null;
+    const withinRange =
+      overrideStationNo != null || best.selectionScore <= MAX_STATION_DISTANCE_KM;
+    if (best.stationNo != null && withinRange && snow) {
       const snd = sndallByStation[best.stationNo];
       const st = stations[best.stationNo];
       const entry = {

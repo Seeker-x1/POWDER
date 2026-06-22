@@ -4,7 +4,12 @@
   "description": "Ski powder hunter - resort names EN generator",
   "private": true,
   "scripts": {
-    "generate-resort-names-en": "node scripts/generate-resort-names-en.js"
+    "generate-resort-names-en": "node scripts/generate-resort-names-en.js",
+    "verify-jma-overrides": "node scripts/verify-jma-overrides.js",
+    "suggest-jma-overrides": "node scripts/suggest-jma-overrides.js",
+    "count-jma-coverage": "node scripts/count-jma-coverage.js",
+    "validate-snow-accuracy": "node scripts/validate-snow-accuracy.js",
+    "fetch-jma-snow": "node scripts/fetch-jma-snow.js"
   },
   "dependencies": {
     "kuroshiro": "^1.2.0",

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-22T10:20:13.519Z",
+  "generated_at": "2026-06-22T11:53:36.830Z",
   "report_date": "2026-06-22",
   "jma_observed_at_sample": "2026-03-18T18:00:00+09:00",
   "summary": {
@@ -12,5 +12,6 @@
   },
   "mae_by_region": {},
   "top_discrepancies": [],
+  "tuning_candidates": [],
   "entries": []
 }

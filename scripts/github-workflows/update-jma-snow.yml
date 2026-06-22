@@ -22,6 +22,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v5
@@ -29,8 +31,15 @@ jobs:
           node-version: "22"
           package-manager-cache: false
 
+      - name: Verify JMA overrides and CSV aliases
+        run: node scripts/verify-jma-overrides.js
+
       - name: Fetch JMA snow and write data/jma-snow.json
         run: node scripts/fetch-jma-snow.js
+
+      - name: JMA coverage report (non-blocking)
+        run: node scripts/count-jma-coverage.js --json || true
+        continue-on-error: true
 
       - name: Snow accuracy report (non-blocking)
         run: node scripts/validate-snow-accuracy.js || echo "validate-snow-accuracy skipped or failed (non-blocking)"
@@ -45,7 +54,12 @@ jobs:
             echo "No changes to snow accuracy report."
           else
             git commit -m "chore: update snow accuracy report [automated]"
-            git push
+            for i in 1 2 3 4 5; do
+              git pull --rebase origin main && git push origin main && exit 0
+              echo "Push failed, retry $i/5..."
+              sleep $((i * 5))
+            done
+            exit 1
           fi
 
       - name: Commit and push if changed
@@ -57,5 +71,10 @@ jobs:
             echo "No changes to JMA snow cache."
           else
             git commit -m "chore: update JMA snow cache [automated]"
-            git push
+            for i in 1 2 3 4 5; do
+              git pull --rebase origin main && git push origin main && exit 0
+              echo "Push failed, retry $i/5..."
+              sleep $((i * 5))
+            done
+            exit 1
           fi

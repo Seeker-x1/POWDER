@@ -1,13 +1,14 @@
-# 毎日 JST 1:10 に前日(JST)のアメダス時間別実績を取得し data/jma-prevday-hourly.json をコミット
-name: Update JMA prev-day hourly
+# 1時間ごとに全ゲレンデの天気を取得し、data/weather.json に保存してコミット・プッシュする
+name: Update weather cache
 
 on:
   schedule:
-    - cron: "10 1 * * *"   # job TZ=Asia/Tokyo → 毎日 1:10 JST
+    - cron: "0 * * * *"
+    - cron: "15 * * * *"
   workflow_dispatch:
 
 concurrency:
-  group: update-jma-prevday-hourly
+  group: update-weather-cache
   cancel-in-progress: true
 
 permissions:
@@ -16,9 +17,7 @@ permissions:
 jobs:
   update:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    env:
-      TZ: Asia/Tokyo
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -31,18 +30,20 @@ jobs:
           node-version: "22"
           package-manager-cache: false
 
-      - name: Fetch JMA prev-day hourly
-        run: node scripts/fetch-jma-prevday-hourly.js
+      - name: Fetch weather and write data/weather.json
+        run: node scripts/fetch-weather-hourly.js
+        env:
+          TZ: Asia/Tokyo
 
       - name: Commit and push if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/jma-prevday-hourly.json
+          git add data/weather.json
           if git diff --staged --quiet; then
-            echo "No changes to jma-prevday-hourly.json."
+            echo "No changes to weather cache."
           else
-            git commit -m "chore: update JMA prev-day hourly cache [automated]"
+            git commit -m "chore: update weather cache [automated]"
             for i in 1 2 3 4 5; do
               git pull --rebase origin main && git push origin main && exit 0
               echo "Push failed, retry $i/5..."

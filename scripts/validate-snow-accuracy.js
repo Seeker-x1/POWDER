@@ -16,6 +16,13 @@ const reportsDir = path.join(ROOT, "reports");
 
 const ELEVATION_SNOW_FACTORS_DEFAULT = { base_m: 500, factor_per_m: 0.00025, max: 1.5 };
 
+/** 優先チューニング対象（観測系精度改善フェーズ） */
+const WATCHLIST_RESORT_IDS = new Set([
+  17, 18, 19, 20, 21, 54, 104, 109, 151, 199, 203, 210, 306, 324, 331, 332, 333,
+]);
+
+const overridesPath = path.join(ROOT, "data", "jma-station-overrides.json");
+
 function extractResorts(html) {
   const startMarker = "const RESORTS = ";
   const startIdx = html.indexOf(startMarker);
@@ -99,6 +106,7 @@ function main() {
   const weather = loadJson(weatherPath, {});
   const jma = loadJson(jmaPath, {});
   const elevationSnowFactors = loadJson(elevFactorsPath, {});
+  const overrides = loadJson(overridesPath, {});
 
   const reportDate = jstDateString();
   const entries = [];
@@ -183,6 +191,36 @@ function main() {
       error_cm: e.error_cm,
     }));
 
+  const tuningCandidates = [...entries]
+    .filter((e) => WATCHLIST_RESORT_IDS.has(e.resort_id))
+    .sort((a, b) => b.abs_error_cm - a.abs_error_cm)
+    .slice(0, 15)
+    .map((e) => {
+      const id = String(e.resort_id);
+      const currentFactor =
+        elevationSnowFactors?.by_resort_id?.[id]?.factor ??
+        elevationFactor(
+          resorts.find((r) => r.id === e.resort_id),
+          elevationSnowFactors
+        );
+      const action =
+        e.error_cm > 0
+          ? "lower elevation-snow-factors.by_resort_id factor or review override station"
+          : "raise elevation-snow-factors.by_resort_id factor or review override station";
+      return {
+        resort_id: e.resort_id,
+        name: e.name,
+        abs_error_cm: e.abs_error_cm,
+        error_cm: e.error_cm,
+        actual_cm: e.actual_cm,
+        forecast_cm: e.forecast_cm,
+        current_factor: Math.round(currentFactor * 1000) / 1000,
+        override_station: overrides[id] || null,
+        jma_station: e.jma_station,
+        suggested_action: action,
+      };
+    });
+
   const sampleObservedAt = entries.length
     ? jma[String(entries[0].resort_id)]?.snowfall_24h_observed_at
     : Object.values(jma)[0]?.snowfall_24h_observed_at;
@@ -201,6 +239,7 @@ function main() {
     },
     mae_by_region: maeByRegion,
     top_discrepancies: topDiscrepancies,
+    tuning_candidates: tuningCandidates,
     entries,
   };
 
@@ -230,6 +269,15 @@ function main() {
     topDiscrepancies.forEach((d, i) => {
       console.log(
         `  ${i + 1}. [${d.resort_id}] ${d.name} (${d.region}): actual=${d.actual_cm}cm forecast=${d.forecast_cm}cm |error|=${d.abs_error_cm}cm`
+      );
+    });
+  }
+
+  if (tuningCandidates.length) {
+    console.log("\nWatchlist tuning candidates:");
+    tuningCandidates.slice(0, 5).forEach((d, i) => {
+      console.log(
+        `  ${i + 1}. [${d.resort_id}] ${d.name}: |error|=${d.abs_error_cm}cm factor=${d.current_factor} → ${d.suggested_action}`
       );
     });
   }

@@ -4,23 +4,29 @@ name: Update weather cache
 on:
   schedule:
     - cron: "0 * * * *"   # 毎時 0 分（UTC）。日本時間では 9:00, 10:00, ... など
+    - cron: "15 * * * *"  # フェイルオーバー用（runner 取得失敗時の取りこぼしを減らす）
   workflow_dispatch:      # 手動実行も可能
+
+concurrency:
+  group: update-weather-cache
+  cancel-in-progress: true
 
 permissions:
   contents: write
 
 jobs:
   update:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: "20"
-          cache: "nothing"
+          node-version: "22"
+          package-manager-cache: false
 
       - name: Fetch weather and write data/weather.json
         run: node scripts/fetch-weather-hourly.js

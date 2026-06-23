@@ -2470,7 +2470,8 @@ function updatePrevDayJmaChips(){
 let resortSnowCache = {};  // id -> { depth_cm, updated_at }（ゲレンデ公表・data/resort-snow.json または RESORTS.snowDepth）
 let liftTimesCache = {};   // id -> "8:00"（リフト開始時刻・data/lift-times.json または RESORTS[].liftStart）
 let operatingCache = {};   // id -> { open: "12-01", close: "04-30" }（営業期間・data/resort-operating.json または RESORTS[].openDate/closeDate）
-let RESORT_GUIDES = null;  // guides.japowserch.com 連携（data/resort-guides.json）
+let RESORT_GUIDES = null;  // guides.japowserch.com 連携（本番 JSON 優先）
+const RESORT_GUIDES_REMOTE_URL = "https://guides.japowserch.com/resort-guides.json";
 let lastDataUpdated = null; // 表示用「最終更新」時刻（weather.json の Last-Modified または API 取得時）
 const fetchQueue = [];
 let fetchInFlight = 0;
@@ -4721,10 +4722,31 @@ function getResortGuideUrl(resortId){
   const q=isEn?"?lang=en":"";
   return base+"/"+g.registryId+"/"+q;
 }
+function loadResortGuides(){
+  return fetch(RESORT_GUIDES_REMOTE_URL,{cache:"no-cache"})
+    .then(function(r){ return r.ok?r.json():Promise.reject(); })
+    .catch(function(){
+      return fetch("data/resort-guides.json").then(function(r){ return r.ok?r.json():null; });
+    })
+    .then(function(data){
+      if(data&&typeof data==="object"&&data.guides){ RESORT_GUIDES=data; }
+      return RESORT_GUIDES;
+    });
+}
 function onDetailClick(resortId){
-  const url=getResortGuideUrl(resortId);
-  if(url){
-    window.open(url,"_blank","noopener,noreferrer");
+  const openGuide=function(){
+    const url=getResortGuideUrl(resortId);
+    if(url){
+      window.open(url,"_blank","noopener,noreferrer");
+      return true;
+    }
+    return false;
+  };
+  if(openGuide()) return;
+  if(!RESORT_GUIDES){
+    loadResortGuides().then(function(){
+      if(!openGuide()) scrollToCard(resortId);
+    });
     return;
   }
   scrollToCard(resortId);
@@ -5914,7 +5936,7 @@ document.getElementById("view-map").style.display="none";
     fetch("data/lift-times.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; }),
     fetch("data/resort-operating.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; }),
     fetch("data/jma-prevday-hourly.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; }),
-    fetch("data/resort-guides.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; })
+    loadResortGuides().catch(function(){ return null; })
   ]).then(function(arr){
     var obj=arr[0], jma=arr[1], resortSnow=arr[2], liftTimes=arr[3], operating=arr[4], prevHourly=arr[5], resortGuides=arr[6];
     if(obj&&typeof obj==="object"){ let n=0; for(var id in obj) if(obj[id]){ weatherCache[id]=obj[id]; n++; } if(n>0){ document.getElementById("fetched-count").textContent=Object.values(weatherCache).filter(v=>v&&v!=="loading").length; renderTop10(); renderList(); } }

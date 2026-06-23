@@ -10,7 +10,7 @@
     "58":  { "registryId": "abashiri-lv",    "tier": "mock" },
     "60":  { "registryId": "unabetsu",       "tier": "mock" },
     "65":  { "registryId": "kiyosato",       "tier": "mock" },
-    "66":  { "registryId": "gokazan",        "tier": "mock", "note": "id 72 貉ｧ蛻･逕ｺ莠秘ｹｿ螻ｱ縺ｧ縺ｯ縺ｪ縺・66" },
+    "66":  { "registryId": "gokazan",        "tier": "mock", "note": "id 72 湧別町五鹿山ではなく 66" },
     "453": { "registryId": "sapporo-kokusai", "tier": "mock" },
     "454": { "registryId": "sapporo-teine",   "tier": "mock" },
     "51":  { "registryId": "pippu",           "tier": "mock" },

@@ -1645,6 +1645,14 @@ header .header-inner{display:flex;align-items:center;justify-content:space-betwe
     color:var(--muted-caption);
     margin:0;
   }
+  #map-detail-sheet .map-focus-screen .focus-guide-row{
+    padding:10px 16px 4px;
+  }
+  #map-detail-sheet .map-focus-screen .focus-guide-btn{
+    display:block;
+    width:100%;
+    box-sizing:border-box;
+  }
   #map-detail-sheet .map-focus-screen .btn-next-sm,
   #map-detail-sheet .map-focus-screen .btn-top-sm{
     flex-shrink:0;
@@ -2309,10 +2317,8 @@ const RESORT_MAP = Object.fromEntries(RESORTS.map(r=>[r.id,r]));
   });
 })();
 
-// GitHub Pages 既定は ""（静的 data/*.json のみ）。自前 API は将来の任意オプション
+// 自前API（B+C）を使う場合はベースURLを指定（例: "http://localhost:8000"）。空なら Open-Meteo 直叩き
 const SNOW_API_BASE = "";
-const USE_RESORT_PUBLISHED_SNOW = false;
-const SNOW_PHASE_THRESHOLDS = { rainMaxC: 4, snowMinC: 0 };
 // true: 起動時・地域選択時に全件をキュー（450件まとめて取得）。false: 注目40件＋地域50件のみ
 const FETCH_ALL_ON_LOAD = false;
 // 起動時に最初に取得する4件（トップ表示で見せたいゲレンデ）
@@ -2320,45 +2326,7 @@ const INITIAL_FETCH_IDS = [19, 324, 300, 203]; // ニセコHANAZONO, かぐら, 
 
 // ─── Weather cache ─────────────────────────────────────────────
 const weatherCache = {};   // id -> {daily:{time,snowfall_sum,wind_speed_10m_max,...}}
-function seedWeatherCacheFromJson(obj){
-  if(!obj||typeof obj!=="object") return 0;
-  let n=0;
-  for(const key of Object.keys(obj)){
-    const entry=obj[key];
-    if(entry==null||entry==="loading") continue;
-    const id=Number(key);
-    if(!Number.isFinite(id)) continue;
-    weatherCache[id]=entry;
-    n++;
-  }
-  return n;
-}
-function applyWeatherCacheSeedCount(n){
-  if(n<=0) return;
-  const el=document.getElementById("fetched-count");
-  if(el) el.textContent=Object.values(weatherCache).filter(v=>v&&v!=="loading").length;
-  renderTop10();
-  renderList();
-}
-const weatherJsonLoadPromise=fetch("data/weather.json").then(function(r){
-  var lm=r.headers.get("Last-Modified");
-  if(lm) lastDataUpdated=new Date(lm);
-  return r.ok?r.json():null;
-}).catch(function(){ return null; }).then(function(obj){
-  const n=seedWeatherCacheFromJson(obj);
-  if(n>0) applyWeatherCacheSeedCount(n);
-  return n;
-});
 let jmaSnowCache = {};     // id -> { depth_cm, station_name, observed_at }（気象庁・日1回取得の積雪）
-let jmaMeshSnowCache = {}; // resortId -> { cm, at }（JMAメッシュ推定・将来拡張）
-let resortSnowMetadata = {}; // id -> { snow_lat, snow_lng, snow_repr_elev_m }
-let resortSnowPublishedIds = new Set();
-let jmaMeshLut = null;
-let jmaMeshRefreshInFlight = false;
-const jmaMeshSampleCanvas = document.createElement("canvas");
-jmaMeshSampleCanvas.width = 256;
-jmaMeshSampleCanvas.height = 256;
-let elevationSnowFactors = null;
 /** 気象庁・前日(JSTカレンダー)実績: 降水㎜+気温℃から降雪相当cmへ換算するルール（全画面共通） */
 const JMA_PREV_SNOW_RULE_TITLE_JA = "気象庁の1時間降水量(㎜)と気温(℃)から降雪相当(cm)を推計。4℃以上は降雨のみ、0〜4℃は線形補間、0℃以下は1mm降水≈1cm新雪相当。";
 let jmaPrevDayMeta = null; // { calendar_day_jst, rule_note_ja, rule_note_en }
@@ -2371,10 +2339,9 @@ function jmaHourlyPrecipTempToSnowCm(precipMm, tempC){
   if(tempC==null||tempC==="") return null;
   const t = Number(tempC);
   if(Number.isNaN(t)) return null;
-  const { rainMaxC, snowMinC } = SNOW_PHASE_THRESHOLDS;
   let snowFrac = 1;
-  if(t>=rainMaxC) snowFrac = 0;
-  else if(t>snowMinC) snowFrac = (rainMaxC-t)/(rainMaxC-snowMinC);
+  if(t>=4) snowFrac = 0;
+  else if(t>0) snowFrac = (4-t)/4;
   return p*10*snowFrac;
 }
 function sumJmaPrevSnowHourRange(precipArr, tempCArr, fromH, toHEx){
@@ -2511,7 +2478,8 @@ function updatePrevDayJmaChips(){
 let resortSnowCache = {};  // id -> { depth_cm, updated_at }（ゲレンデ公表・data/resort-snow.json または RESORTS.snowDepth）
 let liftTimesCache = {};   // id -> "8:00"（リフト開始時刻・data/lift-times.json または RESORTS[].liftStart）
 let operatingCache = {};   // id -> { open: "12-01", close: "04-30" }（営業期間・data/resort-operating.json または RESORTS[].openDate/closeDate）
-let RESORT_GUIDES = null;  // guides.japowserch.com 連携（data/resort-guides.json）
+let RESORT_GUIDES = null;  // guides.japowserch.com 連携（本番 JSON 優先）
+const RESORT_GUIDES_REMOTE_URL = "https://guides.japowserch.com/resort-guides.json";
 let lastDataUpdated = null; // 表示用「最終更新」時刻（weather.json の Last-Modified または API 取得時）
 const fetchQueue = [];
 let fetchInFlight = 0;
@@ -2833,96 +2801,67 @@ function initTopDateButtons(){
   syncTopToolbarAreaLabel();
 }
 
-// ─── Resort snow representative coords / elevation ─────────────
-function resortSnowMetaEntry(resort){
-  if(!resort) return {};
-  const e = resortSnowMetadata[String(resort.id)];
-  return e && typeof e === "object" ? e : {};
-}
-function resortSnowLat(resort){
-  const e = resortSnowMetaEntry(resort);
-  return typeof e.snow_lat === "number" ? e.snow_lat : resort.lat;
-}
-function resortSnowLng(resort){
-  const e = resortSnowMetaEntry(resort);
-  return typeof e.snow_lng === "number" ? e.snow_lng : resort.lng;
-}
-function resortSnowReprElevM(resort){
-  const e = resortSnowMetaEntry(resort);
-  if(typeof e.snow_repr_elev_m === "number" && Number.isFinite(e.snow_repr_elev_m)) return e.snow_repr_elev_m;
-  const top = resort.elevation?.top;
-  return typeof top === "number" && Number.isFinite(top) ? top : 0;
-}
-function usePublishedSnow(resortId){
-  return resortSnowPublishedIds.has(Number(resortId));
-}
-
 // ─── Open-Meteo fetch ──────────────────────────────────────────
 function fetchWeather(resort){
-  return weatherJsonLoadPromise.then(function(){
-    if(weatherCache[resort.id]!==undefined) return Promise.resolve(weatherCache[resort.id]);
-    if(weatherCache[resort.id]==="loading") return Promise.resolve(null);
-    weatherCache[resort.id]="loading";
+  if(weatherCache[resort.id]!==undefined) return Promise.resolve(weatherCache[resort.id]);
+  if(weatherCache[resort.id]==="loading") return Promise.resolve(null);
+  weatherCache[resort.id]="loading";
 
-    const slat = resortSnowLat(resort);
-    const slng = resortSnowLng(resort);
-    const selev = resortSnowReprElevM(resort);
-    const useOwnApi = typeof SNOW_API_BASE==="string"&&SNOW_API_BASE.length>0;
-    const url = useOwnApi
-      ? `${SNOW_API_BASE.replace(/\/$/,"")}/api/forecast?lat=${slat}&lng=${slng}${selev>0?`&elevation=${Math.round(selev)}`:""}`
-      : `https://api.open-meteo.com/v1/forecast?latitude=${slat}&longitude=${slng}`+
-        (selev>0 ? `&elevation=${Math.round(selev)}` : "")+
-        `&daily=snowfall_sum,wind_speed_10m_max,wind_direction_10m_dominant,wind_gusts_10m_max,temperature_2m_min,temperature_2m_max,precipitation_hours`+
-        `&hourly=wind_speed_850hPa,wind_direction_850hPa,snowfall,snow_depth,precipitation_probability,rain,precipitation,temperature_2m`+
-        `&past_days=1&forecast_days=7&timezone=Asia%2FTokyo`;
+  const useOwnApi = typeof SNOW_API_BASE==="string"&&SNOW_API_BASE.length>0;
+  const url = useOwnApi
+    ? `${SNOW_API_BASE.replace(/\/$/,"")}/api/forecast?lat=${resort.lat}&lng=${resort.lng}`
+    : `https://api.open-meteo.com/v1/forecast?latitude=${resort.lat}&longitude=${resort.lng}`+
+      (resort.elevation?.top != null ? `&elevation=${resort.elevation.top}` : "")+
+      `&daily=snowfall_sum,wind_speed_10m_max,wind_direction_10m_dominant,wind_gusts_10m_max,temperature_2m_min,temperature_2m_max,precipitation_hours`+
+      `&hourly=wind_speed_850hPa,wind_direction_850hPa,snowfall,snow_depth,precipitation_probability,rain,precipitation,temperature_2m`+
+      `&past_days=1&forecast_days=7&timezone=Asia%2FTokyo`;
 
-    return fetch(url)
-      .then(r=>r.json())
-      .then(data=>{
-        let daily = null;
-        if(useOwnApi){
-          if(data.daily) daily=data.daily;
-          else if(data.error){ weatherCache[resort.id]=null; return null; }
-        } else {
-          daily = data.daily||null;
-          if(daily && data.hourly?.wind_speed_850hPa){
-            const h = data.hourly.wind_speed_850hPa;
-            const hDir = data.hourly.wind_direction_850hPa||[];
-            daily.wind_speed_850hPa_max = [];
-            daily.wind_dir_850hPa = [];
-            const numDays = (daily.time&&daily.time.length)||(h.length>=192?8:7);
-            for(let d=0;d<numDays;d++){
-              const slice = h.slice(d*24,(d+1)*24).filter(v=>v!=null);
-              daily.wind_speed_850hPa_max.push(slice.length?Math.max(...slice):null);
-              const dSlice = hDir.slice(d*24,(d+1)*24).filter(v=>v!=null);
-              daily.wind_dir_850hPa.push(dSlice.length?dSlice[Math.floor(dSlice.length/2)]:null);
-            }
+  return fetch(url)
+    .then(r=>r.json())
+    .then(data=>{
+      let daily = null;
+      if(useOwnApi){
+        if(data.daily) daily=data.daily;
+        else if(data.error){ weatherCache[resort.id]=null; return null; }
+      } else {
+        daily = data.daily||null;
+        if(daily && data.hourly?.wind_speed_850hPa){
+          const h = data.hourly.wind_speed_850hPa;
+          const hDir = data.hourly.wind_direction_850hPa||[];
+          daily.wind_speed_850hPa_max = [];
+          daily.wind_dir_850hPa = [];
+          const numDays = (daily.time&&daily.time.length)||(h.length>=192?8:7);
+          for(let d=0;d<numDays;d++){
+            const slice = h.slice(d*24,(d+1)*24).filter(v=>v!=null);
+            daily.wind_speed_850hPa_max.push(slice.length?Math.max(...slice):null);
+            const dSlice = hDir.slice(d*24,(d+1)*24).filter(v=>v!=null);
+            daily.wind_dir_850hPa.push(dSlice.length?dSlice[Math.floor(dSlice.length/2)]:null);
           }
-          if(data.hourly?.snowfall) daily.hourly_snowfall = data.hourly.snowfall;
-          if(data.hourly?.time) daily.hourly_time = data.hourly.time;
-          if(data.hourly?.snow_depth) daily.hourly_snow_depth = data.hourly.snow_depth;
-          if(data.hourly?.precipitation_probability) daily.hourly_precip_prob = data.hourly.precipitation_probability;
-          if(data.hourly?.rain) daily.hourly_rain = data.hourly.rain;
-          else if(data.hourly?.precipitation && data.hourly?.snowfall) {
-            const prec = data.hourly.precipitation, snow = data.hourly.snowfall;
-            daily.hourly_rain = prec.map((p,i)=> Math.max(0, (p||0) - (snow[i]!=null ? snow[i] : 0)));
-          }
-          if(data.hourly?.temperature_2m) daily.hourly_temp_2m = data.hourly.temperature_2m;
         }
-        if(useOwnApi && daily && data.hourly?.temperature_2m){
-          daily.hourly_temp_2m = data.hourly.temperature_2m;
+        if(data.hourly?.snowfall) daily.hourly_snowfall = data.hourly.snowfall;
+        if(data.hourly?.time) daily.hourly_time = data.hourly.time;
+        if(data.hourly?.snow_depth) daily.hourly_snow_depth = data.hourly.snow_depth;
+        if(data.hourly?.precipitation_probability) daily.hourly_precip_prob = data.hourly.precipitation_probability;
+        if(data.hourly?.rain) daily.hourly_rain = data.hourly.rain;
+        else if(data.hourly?.precipitation && data.hourly?.snowfall) {
+          const prec = data.hourly.precipitation, snow = data.hourly.snowfall;
+          daily.hourly_rain = prec.map((p,i)=> Math.max(0, (p||0) - (snow[i]!=null ? snow[i] : 0)));
         }
-        weatherCache[resort.id]=daily;
-        lastDataUpdated = new Date();
-        document.getElementById("fetched-count").textContent=Object.values(weatherCache).filter(v=>v&&v!=="loading").length;
-        renderTop10();
-        return weatherCache[resort.id];
-      })
-      .catch(()=>{
-        weatherCache[resort.id]=null;
-        return null;
-      });
-  });
+        if(data.hourly?.temperature_2m) daily.hourly_temp_2m = data.hourly.temperature_2m;
+      }
+      if(useOwnApi && daily && data.hourly?.temperature_2m){
+        daily.hourly_temp_2m = data.hourly.temperature_2m;
+      }
+      weatherCache[resort.id]=daily;
+      lastDataUpdated = new Date();
+      document.getElementById("fetched-count").textContent=Object.values(weatherCache).filter(v=>v&&v!=="loading").length;
+      renderTop10();
+      return weatherCache[resort.id];
+    })
+    .catch(()=>{
+      weatherCache[resort.id]=null;
+      return null;
+    });
 }
 
 // Queue-based batch fetcher
@@ -3022,20 +2961,14 @@ function windDirQuality(deg, region){
 }
 
 // ─── 標高補正（A: 山頂付近は降雪多めに換算）────────────────────
-const ELEVATION_SNOW_FACTORS_DEFAULT = { base_m: 500, factor_per_m: 0.00025, max: 1.5 };
+const ELEV_BASE = 500;   // 基準標高(m)
+const ELEV_FACTOR = 0.00025; // 100mごとの増加率
+const ELEV_MAX_FACTOR = 1.5; // 補正上限
 function elevationFactor(resort){
-  const top = resortSnowReprElevM(resort);
-  if(top==null||top===undefined||top===0) return 1;
-  const cfg = elevationSnowFactors || {};
-  const def = cfg.default || ELEVATION_SNOW_FACTORS_DEFAULT;
-  const regionCfg = (cfg.by_region && resort.region && cfg.by_region[resort.region]) ? cfg.by_region[resort.region] : {};
-  const resortCfg = (cfg.by_resort_id && cfg.by_resort_id[String(resort.id)]) ? cfg.by_resort_id[String(resort.id)] : {};
-  if(resortCfg.factor != null) return resortCfg.factor;
-  const base_m = regionCfg.base_m ?? def.base_m ?? 500;
-  const factor_per_m = regionCfg.factor_per_m ?? def.factor_per_m ?? 0.00025;
-  const max = regionCfg.max ?? def.max ?? 1.5;
-  const f = 1 + (top - base_m) * factor_per_m;
-  return Math.max(1, Math.min(max, f));
+  const top = resort.elevation?.top;
+  if(top==null||top===undefined) return 1;
+  const f = 1 + (top - ELEV_BASE) * ELEV_FACTOR;
+  return Math.max(1, Math.min(ELEV_MAX_FACTOR, f));
 }
 // APIが past_days=1 で8日分返す場合: index 0=前日, 1=今日,…。UIの dayOffset 0=今日 → dayIndex 1
 function getDayIndex(daily, dayOffset){
@@ -3050,15 +2983,18 @@ function getSnowfallAdjusted(daily, resort, dayOffset){
 }
 function classifyPhase(tempC, snowMm, totalMm){
   if(totalMm<=0) return { snowMmEff: 0, rainMmEff: 0, phase: "none" };
-  const { rainMaxC, snowMinC } = SNOW_PHASE_THRESHOLDS;
+  const T_SNOW = 0.0;
+  const T_MIX  = 1.5;
+  const T_RAIN = 2.5;
   let snowFrac, rainFrac;
-  if(tempC<=snowMinC){
+  if(tempC<=T_SNOW){
     snowFrac = 1.0; rainFrac = 0.0;
-  }else if(tempC>=rainMaxC){
+  }else if(tempC>=T_RAIN){
     snowFrac = 0.0; rainFrac = 1.0;
   }else{
-    snowFrac = (rainMaxC - tempC) / (rainMaxC - snowMinC);
-    rainFrac = 1.0 - snowFrac;
+    const t = (tempC - T_SNOW) / (T_RAIN - T_SNOW);
+    snowFrac = Math.max(0, 1.0 - t);
+    rainFrac = Math.min(1.0, t);
   }
   const snowMmEff = totalMm * snowFrac;
   const rainMmEff = totalMm * rainFrac;
@@ -3121,99 +3057,31 @@ function getLast24hModelSnowCm(daily, resort){
 // 表示用：自データが無い/0で近くに降雪予報がある場合は付近の値を標高補正して参照（2kmで24cm vs 0cm のような差を緩和）
 const NEARBY_FALLBACK_KM = 5;
 const NEARBY_FALLBACK_MIN_CM = 5;
-const NEARBY_FALLBACK_MAX_ELEV_DIFF_M = 400;
-const NEARBY_ELEV_PENALTY = 0.003;
-function emptySnowfallDisplay(){
-  return { cm: null, fromNearby: false, nearbyKm: null, nearbyElevDiff: null, source: null, sourceTitle: null };
-}
-function formatSnowfallDisplayMeta(snowD, en){
-  if(!snowD||snowD.cm==null) return { suffix: "", title: "" };
-  if(snowD.fromNearby){
-    const km = snowD.nearbyKm!=null ? snowD.nearbyKm : "?";
-    const ed = snowD.nearbyElevDiff!=null ? snowD.nearbyElevDiff : "?";
-    return {
-      suffix: en ? " (nearby)" : " (付近)",
-      title: en ? `Nearby resort estimate (${km}km, Δelev ${ed}m)` : `近隣ゲレンデ推定（${km}km・標高差${ed}m）`
-    };
-  }
-  if(snowD.source==="jma_observed"){
-    const st = snowD.sourceTitle||"";
-    return {
-      suffix: en ? " (JMA obs)" : " （気象庁観測）",
-      title: en ? `JMA observation${st ? " · "+st : ""}` : `気象庁観測値${st ? "（"+st+"）" : ""}`
-    };
-  }
-  if(snowD.source==="jma_mesh"){
-    return { suffix: en ? " (JMA mesh)" : " （JMAメッシュ）", title: en ? "JMA mesh estimate" : "JMAメッシュ推定" };
-  }
-  if(snowD.source==="model"){
-    return { suffix: "", title: en ? "Model forecast" : "モデル予報" };
-  }
-  return { suffix: "", title: "" };
-}
 function getSnowfallForDisplay(resortId, dayOffset){
   const r = RESORT_MAP[resortId];
-  if(!r) return emptySnowfallDisplay();
+  if(!r) return { cm: null, fromNearby: false };
   const daily = weatherCache[resortId];
-  const jma = jmaSnowCache[resortId];
   const idx = daily&&daily.snowfall_sum ? getDayIndex(daily, dayOffset) : dayOffset + (daily&&daily.snowfall_sum&&daily.snowfall_sum.length>7 ? 1 : 0);
-  let modelCm = null;
-  if(daily&&daily.snowfall_sum) modelCm = (daily.snowfall_sum[idx]||0) * elevationFactor(r);
-  let cm = modelCm;
-  let source = modelCm!=null ? "model" : null;
-  let sourceTitle = null;
-  if(dayOffset===0){
-    const mesh = jmaMeshSnowCache[resortId];
-    if(mesh&&mesh.cm!=null){
-      const blended = Math.max(cm??0, mesh.cm);
-      if(blended>(cm??0)||cm==null){ cm=blended; source="jma_mesh"; }
-    }
-    if(jma){
-      if(jma.snowfall_24h_cm!=null){
-        const j24 = jma.snowfall_24h_cm;
-        const next = Math.max(cm??0, j24);
-        if(next>(cm??0)||cm==null){
-          cm = next;
-          source = "jma_observed";
-          sourceTitle = (jma.station_name||"")+(jma.snowfall_24h_observed_at?" · "+jma.snowfall_24h_observed_at:"");
-        }
-      }
-      if(jma.snowfall_3h_cm!=null&&(modelCm==null||modelCm<NEARBY_FALLBACK_MIN_CM)){
-        const estDaily = jma.snowfall_3h_cm*8;
-        if(estDaily>(cm??0)){
-          cm = estDaily;
-          source = "jma_observed";
-          sourceTitle = (jma.station_name||"")+(jma.snowfall_3h_observed_at?" · 3h "+jma.snowfall_3h_observed_at:"");
-        }
-      }
-    }
-  }
-  if(cm!=null&&cm>=NEARBY_FALLBACK_MIN_CM){
-    return { cm, fromNearby: false, nearbyKm: null, nearbyElevDiff: null, source, sourceTitle };
-  }
-  if(dayOffset===0&&jma&&jma.snowfall_24h_cm!=null){
-    const st = (jma.station_name||"")+(jma.snowfall_24h_observed_at?" · "+jma.snowfall_24h_observed_at:"");
-    return { cm: jma.snowfall_24h_cm, fromNearby: false, nearbyKm: null, nearbyElevDiff: null, source: "jma_observed", sourceTitle: st };
-  }
-  const selfTop = r.elevation?.top??0;
-  let best = { cm, fromNearby: false, nearbyKm: null, nearbyElevDiff: null, score: Infinity, source, sourceTitle: null };
+  let raw = null;
+  if(daily&&daily.snowfall_sum) raw = (daily.snowfall_sum[idx]||0) * elevationFactor(r);
+  const selfCm = raw!=null ? raw : null;
+  if(selfCm!=null && selfCm>=NEARBY_FALLBACK_MIN_CM) return { cm: selfCm, fromNearby: false };
+  const R=6371, deg2rad=d=>d*Math.PI/180;
+  const lat1=deg2rad(r.lat), lon1=deg2rad(r.lng);
+  let best = { cm: selfCm, fromNearby: false };
   RESORTS.forEach(o=>{
     if(o.id===resortId) return;
-    const km = haversineKm(r.lat, r.lng, o.lat, o.lng);
+    const lat2=deg2rad(o.lat), lon2=deg2rad(o.lng);
+    const km=2*R*Math.asin(Math.sqrt(Math.sin((lat2-lat1)/2)**2+Math.cos(lat1)*Math.cos(lat2)*Math.sin((lon2-lon1)/2)**2));
     if(km>NEARBY_FALLBACK_KM) return;
-    const elevDiff = Math.abs(selfTop-(o.elevation?.top??0));
-    if(elevDiff>NEARBY_FALLBACK_MAX_ELEV_DIFF_M) return;
-    const score = km + elevDiff*NEARBY_ELEV_PENALTY;
-    const od = weatherCache[o.id];
+    const od=weatherCache[o.id];
     if(!od||od==="loading"||!od.snowfall_sum) return;
     const oIdx = getDayIndex(od, dayOffset);
-    const oRaw = (od.snowfall_sum[oIdx]||0)*elevationFactor(r);
+    const oRaw = (od.snowfall_sum[oIdx]||0) * elevationFactor(r);
     if(oRaw<NEARBY_FALLBACK_MIN_CM) return;
-    if(score<best.score||(score===best.score&&oRaw>(best.cm??0))){
-      best = { cm: oRaw, fromNearby: true, nearbyKm: Math.round(km*10)/10, nearbyElevDiff: elevDiff, score, source: "nearby", sourceTitle: null };
-    }
+    if(best.cm==null || (best.cm<NEARBY_FALLBACK_MIN_CM && oRaw>best.cm)) best = { cm: oRaw, fromNearby: true };
   });
-  return { cm: best.cm, fromNearby: best.fromNearby, nearbyKm: best.nearbyKm, nearbyElevDiff: best.nearbyElevDiff, source: best.fromNearby?"nearby":best.source, sourceTitle: best.sourceTitle };
+  return best;
 }
 
 // ─── Powder Score ──────────────────────────────────────────────
@@ -3353,26 +3221,20 @@ function windDir(deg){
 
 // 現在の積雪表示用: ゲレンデ公表優先 > 気象庁 > モデル（公表値を入れている場合はその値を表示）
 function getDisplaySnowDepth(resortId, jma, daily, resort){
-  if(usePublishedSnow(resortId)){
-    const rs = resortSnowCache[resortId];
-    if(rs&&rs.depth_cm!=null) return { depthCm: rs.depth_cm, sourceLabel: "ゲレンデ公表", sourceTitle: "ゲレンデ公式発表"+(rs.updated_at?"（"+rs.updated_at+"）":"")+"。※"+GELENDE_SNOW_NOTE };
-    if(resort&&resort.snowDepth!=null) return { depthCm: resort.snowDepth, sourceLabel: "ゲレンデ公表", sourceTitle: "ゲレンデ公式（RESORTSの値）。※"+GELENDE_SNOW_NOTE };
-  }
-  const hasJmaDepth = jma&&(jma.depth_cm!=null||jma.depth_max_today_cm!=null);
+  const rs = resortSnowCache[resortId];
+  if(rs&&rs.depth_cm!=null) return { depthCm: rs.depth_cm, sourceLabel: "ゲレンデ公表", sourceTitle: "ゲレンデ公式発表"+(rs.updated_at?"（"+rs.updated_at+"）":"")+"。※"+GELENDE_SNOW_NOTE };
+  if(resort&&resort.snowDepth!=null) return { depthCm: resort.snowDepth, sourceLabel: "ゲレンデ公表", sourceTitle: "ゲレンデ公式（RESORTSの値）。※"+GELENDE_SNOW_NOTE };
   if(jma&&jma.depth_cm!=null) return { depthCm: jma.depth_cm, sourceLabel: "近隣気象庁観測値", sourceTitle: "近隣の気象庁観測点・"+(jma.station_name||"")+"（"+(jma.observed_at||"")+")" };
-  if(jma&&jma.depth_max_today_cm!=null) return { depthCm: jma.depth_max_today_cm, sourceLabel: "近隣気象庁観測値", sourceTitle: "近隣の気象庁観測点・日最深（"+(jma.station_name||"")+(jma.depth_max_at_hhmm?" "+jma.depth_max_at_hhmm:"")+"）" };
-  if(!hasJmaDepth&&daily&&daily!=="loading"&&daily.hourly_snow_depth?.[0]!=null) return { depthCm: Math.round(daily.hourly_snow_depth[0]*100), sourceLabel: "モデル推定", sourceTitle: "気象モデルによる現在の積雪深" };
+  if(daily&&daily!=="loading"&&daily.hourly_snow_depth?.[0]!=null) return { depthCm: Math.round(daily.hourly_snow_depth[0]*100), sourceLabel: "モデル推定", sourceTitle: "気象モデルによる現在の積雪深" };
   return { depthCm: null, sourceLabel: null, sourceTitle: null };
 }
+// 積雪量ランキング用の数値: ゲレンデ公表優先 > 気象庁(日最深優先) > モデル
 function getDepthForRanking(resortId, jma, daily, resort){
-  if(usePublishedSnow(resortId)){
-    const rs = resortSnowCache[resortId];
-    if(rs&&rs.depth_cm!=null) return rs.depth_cm;
-    if(resort&&resort.snowDepth!=null) return resort.snowDepth;
-  }
+  const rs = resortSnowCache[resortId];
+  if(rs&&rs.depth_cm!=null) return rs.depth_cm;
+  if(resort&&resort.snowDepth!=null) return resort.snowDepth;
   if(jma&&(jma.depth_max_today_cm!=null||jma.depth_cm!=null)) return jma.depth_max_today_cm!=null ? jma.depth_max_today_cm : jma.depth_cm;
-  const hasJmaDepth = jma&&(jma.depth_cm!=null||jma.depth_max_today_cm!=null);
-  if(!hasJmaDepth&&daily&&daily!=="loading"&&daily.hourly_snow_depth?.[0]!=null) return Math.round(daily.hourly_snow_depth[0]*100);
+  if(daily&&daily!=="loading"&&daily.hourly_snow_depth?.[0]!=null) return Math.round(daily.hourly_snow_depth[0]*100);
   return null;
 }
 
@@ -3996,7 +3858,6 @@ function renderList(){
       const tempMin=Math.round(daily.temperature_2m_min[getDayIndex(daily,targetDayOffset)]??0);
       const snowD = getSnowfallForDisplay(r.id, targetDayOffset);
       const snowCm = snowD.cm!=null ? Math.round(snowD.cm) : null;
-      const snowMeta = formatSnowfallDisplayMeta(snowD, false);
       const jma = jmaSnowCache[r.id];
       const snowDisplay = getDisplaySnowDepth(r.id, jma, daily, r);
       const snowDepthCm = snowDisplay.depthCm;
@@ -4005,7 +3866,7 @@ function renderList(){
       const wdq=windDirQuality(sw.summitDir, r.region);
       const summitWindClass=windClass(sw.summit);
       weatherHtml=`<div class="weather-row">
-        <span class="weather-badge badge-snow" title="${(snowMeta.title||"").replace(/"/g,"&quot;")}">❄️ ${snowCm!=null?snowCm+"cm":"—"}${snowMeta.suffix?`<span class="snow-depth-source">${snowMeta.suffix}</span>`:""}</span>
+        <span class="weather-badge badge-snow">❄️ ${snowCm!=null?snowCm+"cm":"—"}${snowD.fromNearby?" <span class=\"snow-depth-source\" title=\"付近のゲレンデの予報を参照\">(付近)</span>":""}</span>
         ${snowDepthCm!=null ? `<span class="weather-badge badge-snow" title="${snowDisplay.sourceTitle||snowDepthSource||""}">積雪 ${snowDepthCm}cm${snowDepthSource?`<span class="snow-depth-source">（${snowDepthSource}）</span>`:""}</span>` : ""}
         ${jma&&jma.depth_max_today_cm!=null ? `<span class="weather-badge badge-snow" title="気象庁・日最深積雪（${jma.station_name||""}${jma.depth_max_at_hhmm?" "+jma.depth_max_at_hhmm:""}）">日最深 ${jma.depth_max_today_cm}cm<span class="snow-depth-source">（気象庁）</span></span>` : ""}
         ${jma&&jma.snowfall_3h_cm!=null ? `<span class="weather-badge badge-snow" title="気象庁観測・直近3時間降雪（${jma.snowfall_3h_observed_at||""}）">3h観測 ${jma.snowfall_3h_cm}cm<span class="snow-depth-source">（気象庁）</span></span>` : ""}
@@ -4409,6 +4270,7 @@ function buildFocusViewRankingBlock(id, r, daily, ps){
     ? `<button type="button" class="btn-next-sm" onclick="openFocusFromRanking(${nextId},{noMove:true})" aria-label="${escapeHtmlAttr(t.nextAria)}">${t.next}</button>`
     : "";
   const topBtn = `<button type="button" class="btn-top-sm" onclick="showTopView()" aria-label="${escapeHtmlAttr(t.topAria)}">${t.top}</button>`;
+  const guideBtn = `<div class="focus-guide-row"><button type="button" class="popup-btn popup-btn-primary focus-guide-btn" onclick="onDetailClick(${id})">${isJa ? "詳細ガイド →" : "Resort guide →"}</button></div>`;
 
   const dispName = (!isJa && typeof displayNameEn === "function") ? displayNameEn(r) : r.name;
   const dispPref = (!isJa && typeof getPrefEn === "function") ? getPrefEn(r.pref) : r.pref;
@@ -4440,6 +4302,7 @@ function buildFocusViewRankingBlock(id, r, daily, ps){
           ${badgeHtml}
         </div>
       </div>
+      ${guideBtn}
       ${dayChipsHtml}
       ${l2Html}
       ${tlHtml}
@@ -4724,8 +4587,7 @@ function selectResort(id, opts){
       const tempMax=Math.round(daily.temperature_2m_max[getDayIndex(daily,targetDayOffset)]??0);
       const snowDisplay = getSnowfallForDisplay(id, targetDayOffset);
       const snowCm = snowDisplay.cm!=null ? Math.round(snowDisplay.cm) : null;
-      const snowMeta = formatSnowfallDisplayMeta(snowDisplay, false);
-      const snowNote = snowMeta.suffix ? ` <span class="snow-depth-source" title="${(snowMeta.title||"").replace(/"/g,"&quot;")}">${snowMeta.suffix}</span>` : "";
+      const snowNote = snowDisplay.fromNearby ? " <span class=\"snow-depth-source\">（付近の予報を参照）</span>" : "";
       const wdq=windDirQuality(sw.summitDir, r.region);
       const wDir=windDir(sw.summitDir);
       const gust=daily.wind_gusts_10m_max?.[getDayIndex(daily,targetDayOffset)];
@@ -4736,7 +4598,7 @@ function selectResort(id, opts){
       const snowDepthTitle = depthDisplay.sourceTitle || "気象モデルによる現在の積雪深";
       contentHtml+=`
       <div class="popup-pw"><div class="popup-pw-num" style="color:${scoreColor(ps.score)}">${ps.score}</div><div class="popup-pw-label" style="color:${scoreColor(ps.score)}">${scoreGrade(ps.score)}</div></div>
-      <div class="popup-detail-row" title="${(snowMeta.title||"").replace(/"/g,"&quot;")}">❄️ 予報降雪 <strong>${snowCm!=null?snowCm+"cm":"—"}${snowNote}</strong></div>
+      <div class="popup-detail-row">❄️ 予報降雪 <strong>${snowCm!=null?snowCm+"cm":"—"}${snowNote}</strong></div>
       ${snowDepthCm!=null ? `<div class="popup-detail-row" title="${snowDepthTitle}">📐 積雪 <strong>${snowDepthCm}cm</strong>${depthDisplay.sourceLabel?`<span class="snow-depth-source">（${depthDisplay.sourceLabel}）</span>`:""}</div>` : ""}
       ${jma&&jma.depth_max_today_cm!=null ? `<div class="popup-detail-row" title="気象庁・日最深積雪（${jma.station_name||""}）">📊 日最深積雪 <strong>${jma.depth_max_today_cm}cm</strong>${jma.depth_max_at_hhmm?`（${jma.depth_max_at_hhmm}）`:""}<span class="snow-depth-source">（気象庁）</span></div>` : ""}
       ${jma&&jma.snowfall_3h_cm!=null ? `<div class="popup-detail-row" title="気象庁観測・${jma.station_name||""}（${jma.snowfall_3h_observed_at||""}）">❄️ 直近3h観測降雪 <strong>${jma.snowfall_3h_cm}cm</strong><span class="snow-depth-source">（気象庁）</span></div>` : ""}
@@ -4766,10 +4628,7 @@ function selectResort(id, opts){
         let snowTxt="--";
         if(other){
           const snowD = getSnowfallForDisplay(other.id, targetDayOffset);
-          if(snowD.cm!=null){
-            const sm = formatSnowfallDisplayMeta(snowD, false);
-            snowTxt=`${Math.round(snowD.cm)}cm${sm.suffix||""}`;
-          }
+          if(snowD.cm!=null) snowTxt=`${Math.round(snowD.cm)}cm${snowD.fromNearby?"(付近)":""}`;
         }
         const groupIds = [id].concat(nearbyList.map(x=>x.id));
         contentHtml+=`<div class="popup-nearby-item" onclick="selectResortGroup(${n.id},[${groupIds.join(",")}])"><span>${name}</span><span>${snowTxt} · 約${n.km}km</span></div>`;
@@ -4865,18 +4724,42 @@ function selectResort(id, opts){
 
 function getResortGuideUrl(resortId){
   const g=RESORT_GUIDES&&RESORT_GUIDES.guides&&RESORT_GUIDES.guides[String(resortId)];
-  if(!g||!g.registryId) return null;
-  const base=(RESORT_GUIDES.baseUrl||"https://guides.japowserch.com").replace(/\/$/,"");
+  if(!g) return null;
   const isEn=document.documentElement.lang==="en"
     ||/-en\.html$/i.test(location.pathname)
     ||new URLSearchParams(location.search).get("lang")==="en";
+  if(isEn&&g.guideUrlEn) return g.guideUrlEn;
+  if(g.guideUrl) return g.guideUrl;
+  if(!g.registryId) return null;
+  const base=(RESORT_GUIDES.baseUrl||"https://guides.japowserch.com").replace(/\/$/,"");
   const q=isEn?"?lang=en":"";
   return base+"/"+g.registryId+"/"+q;
 }
+function loadResortGuides(){
+  return fetch(RESORT_GUIDES_REMOTE_URL,{cache:"no-cache"})
+    .then(function(r){ return r.ok?r.json():Promise.reject(); })
+    .catch(function(){
+      return fetch("data/resort-guides.json").then(function(r){ return r.ok?r.json():null; });
+    })
+    .then(function(data){
+      if(data&&typeof data==="object"&&data.guides){ RESORT_GUIDES=data; }
+      return RESORT_GUIDES;
+    });
+}
 function onDetailClick(resortId){
-  const url=getResortGuideUrl(resortId);
-  if(url){
-    window.open(url,"_blank","noopener,noreferrer");
+  const openGuide=function(){
+    const url=getResortGuideUrl(resortId);
+    if(url){
+      window.open(url,"_blank","noopener,noreferrer");
+      return true;
+    }
+    return false;
+  };
+  if(openGuide()) return;
+  if(!RESORT_GUIDES){
+    loadResortGuides().then(function(){
+      if(!openGuide()) scrollToCard(resortId);
+    });
     return;
   }
   scrollToCard(resortId);
@@ -5020,7 +4903,6 @@ function mountJmaSnowLayerFromTimeStr(kind, timeStr){
       minNativeZoom:JMA_TILE_NATIVE_MIN
     });
   }
-  refreshJmaMeshSnowCache(kind, timeStr);
   return jmaSnowLayer;
 }
 /** ストレージ即表示後、最新時刻へ差し替え */
@@ -5066,7 +4948,6 @@ function refreshJmaSnowTimeInBackground(kind){
       const urlPattern = buildJmaSnowTileUrl(myKind, latest);
       if(urlPattern) jmaSnowLayer.setUrl(urlPattern);
       writeJmaSnowStoredTime(myKind, latest);
-      refreshJmaMeshSnowCache(myKind, latest);
       // #region agent log
       try{
         fetch("http://127.0.0.1:7504/ingest/7a45a88b-734e-4e06-9139-2646ed4e0f41",{method:"POST",headers:{"Content-Type":"application/json","X-Debug-Session-Id":"e56e9e"},body:JSON.stringify({sessionId:"e56e9e",location:"ski-powder-hunter.html:refreshJmaSnowTimeInBackground",message:"jma bg refresh applied new timeStr",data:{kind:myKind,prev,latest,elapsedMs:Date.now()-t0},timestamp:Date.now(),hypothesisId:"H-instant"})}).catch(function(){});
@@ -5139,99 +5020,6 @@ function latLngToTileXY(lat, lng, z){
   const latRad = lat * Math.PI / 180;
   const y = Math.floor((1 - (Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI)) / 2 * n);
   return { x, y };
-}
-
-function latLngToTilePixel(lat, lng, z, tileX, tileY){
-  const n = Math.pow(2, z);
-  const xf = ((lng + 180) / 360) * n;
-  const latRad = lat * Math.PI / 180;
-  const yf = (1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n;
-  const px = Math.floor((xf - tileX) * 256);
-  const py = Math.floor((yf - tileY) * 256);
-  return { px: Math.max(0, Math.min(255, px)), py: Math.max(0, Math.min(255, py)) };
-}
-
-function jmaMeshStopsForKind(kind){
-  if(!jmaMeshLut || !jmaMeshLut.kinds) return [];
-  const k = jmaMeshLut.kinds[kind];
-  return k && Array.isArray(k.stops) ? k.stops : [];
-}
-
-function decodeJmaMeshPixel(r, g, b, a, kind){
-  const stops = jmaMeshStopsForKind(kind);
-  if(!stops.length) return null;
-  if(a < 100) return null;
-  if(jmaMeshLut.nodata){
-    for(const nd of jmaMeshLut.nodata){
-      if(r===nd.r && g===nd.g && b===nd.b) return null;
-    }
-  }
-  let best = null, bestD = Infinity;
-  for(const s of stops){
-    const dr = r - s.r, dg = g - s.g, db = b - s.b;
-    const d = dr*dr + dg*dg + db*db;
-    if(d < bestD){ bestD = d; best = s; }
-  }
-  const maxD = Math.pow(jmaMeshLut.max_rgb_dist || 55, 2);
-  if(!best || bestD > maxD) return null;
-  return best.cm;
-}
-
-async function sampleJmaMeshSnowCm(lat, lng, kind, timeStr){
-  const z = JMA_TILE_NATIVE_MAX;
-  const { x, y } = latLngToTileXY(lat, lng, z);
-  const url = buildJmaSnowTileUrlFromXY(kind, timeStr, z, x, y);
-  if(!url) return null;
-  try{
-    const img = await new Promise(function(resolve, reject){
-      const im = new Image();
-      im.crossOrigin = "anonymous";
-      im.onload = function(){ resolve(im); };
-      im.onerror = reject;
-      im.src = url + "?mesh=" + Date.now();
-    });
-    const ctx = jmaMeshSampleCanvas.getContext("2d", { willReadFrequently: true });
-    ctx.clearRect(0, 0, 256, 256);
-    ctx.drawImage(img, 0, 0);
-    const { px, py } = latLngToTilePixel(lat, lng, z, x, y);
-    const data = ctx.getImageData(px, py, 1, 1).data;
-    let cm = decodeJmaMeshPixel(data[0], data[1], data[2], data[3], kind);
-    if(cm == null){
-      const block = ctx.getImageData(Math.max(0, px-1), Math.max(0, py-1), 3, 3).data;
-      const vals = [];
-      for(let j=0;j<3;j++) for(let i=0;i<3;i++){
-        const idx = (j*3+i)*4;
-        const v = decodeJmaMeshPixel(block[idx], block[idx+1], block[idx+2], block[idx+3], kind);
-        if(v != null) vals.push(v);
-      }
-      if(vals.length) cm = vals.reduce(function(a,b){ return a+b; }, 0) / vals.length;
-    }
-    return cm != null ? Math.round(cm * 10) / 10 : null;
-  }catch(_e){
-    return null;
-  }
-}
-
-async function refreshJmaMeshSnowCache(kind, timeStr){
-  if(!kind || !timeStr || !jmaMeshLut) return;
-  if(jmaMeshRefreshInFlight) return;
-  jmaMeshRefreshInFlight = true;
-  try{
-    const ids = Array.from(FEATURED_IDS);
-    const batch = 5;
-    for(let i=0; i<ids.length; i+=batch){
-      await Promise.all(ids.slice(i, i+batch).map(async function(id){
-        const r = RESORT_MAP[id];
-        if(!r) return;
-        const cm = await sampleJmaMeshSnowCm(resortSnowLat(r), resortSnowLng(r), kind, timeStr);
-        if(cm != null) jmaMeshSnowCache[id] = { cm: cm, at: timeStr, kind: kind };
-      }));
-    }
-    renderList();
-    renderTop10();
-  }finally{
-    jmaMeshRefreshInFlight = false;
-  }
 }
 
 function getJmaProbeLatLngs(){
@@ -6155,31 +5943,22 @@ document.getElementById("view-map").style.display="none";
 // キャッシュファイルがあれば読み込み（weather.json、jma-snow.json、resort-snow.json、lift-times.json、resort-operating.json）
 (function(){
   Promise.all([
-    weatherJsonLoadPromise,
+    fetch("data/weather.json").then(function(r){ var lm=r.headers.get("Last-Modified"); if(lm) lastDataUpdated=new Date(lm); return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; }),
     fetch("data/jma-snow.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; }),
     fetch("data/resort-snow.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; }),
     fetch("data/lift-times.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; }),
     fetch("data/resort-operating.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; }),
     fetch("data/jma-prevday-hourly.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; }),
-    fetch("data/elevation-snow-factors.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; }),
-    fetch("data/resort-guides.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; }),
-    fetch("data/resort-snow-metadata.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; }),
-    fetch("data/jma-mesh-lut.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; }),
-    fetch("data/resort-snow-published-ids.json").then(function(r){ return r.ok?r.json():Promise.reject(); }).catch(function(){ return null; })
+    loadResortGuides().catch(function(){ return null; })
   ]).then(function(arr){
-    var jma=arr[1], resortSnow=arr[2], liftTimes=arr[3], operating=arr[4], prevHourly=arr[5], elevFactors=arr[6], resortGuides=arr[7], snowMeta=arr[8], meshLut=arr[9], publishedIds=arr[10];
+    var obj=arr[0], jma=arr[1], resortSnow=arr[2], liftTimes=arr[3], operating=arr[4], prevHourly=arr[5], resortGuides=arr[6];
+    if(obj&&typeof obj==="object"){ let n=0; for(var id in obj) if(obj[id]){ weatherCache[id]=obj[id]; n++; } if(n>0){ document.getElementById("fetched-count").textContent=Object.values(weatherCache).filter(v=>v&&v!=="loading").length; renderTop10(); renderList(); } }
     if(jma&&typeof jma==="object"){ jmaSnowCache=jma; }
     if(prevHourly&&typeof prevHourly==="object"){ mergeJmaPrevDayHourlyPayload(prevHourly); }
-    if(elevFactors&&typeof elevFactors==="object"){ elevationSnowFactors=elevFactors; }
     if(resortSnow&&typeof resortSnow==="object"){ resortSnowCache=resortSnow; }
     if(liftTimes&&typeof liftTimes==="object"){ liftTimesCache=liftTimes; }
     if(operating&&typeof operating==="object"){ operatingCache=operating; }
     if(resortGuides&&typeof resortGuides==="object"&&resortGuides.guides){ RESORT_GUIDES=resortGuides; }
-    if(snowMeta&&typeof snowMeta==="object"){ resortSnowMetadata=snowMeta; }
-    if(meshLut&&typeof meshLut==="object"){ jmaMeshLut=meshLut; }
-    if(publishedIds&&Array.isArray(publishedIds.resort_ids)){
-      resortSnowPublishedIds = new Set(publishedIds.resort_ids.map(function(n){ return Number(n); }).filter(function(n){ return Number.isFinite(n); }));
-    }
     if(jma||resortSnow||operating) renderList();
   })
   .catch(function(){})

@@ -1415,6 +1415,14 @@ header .header-inner{display:flex;align-items:center;justify-content:space-betwe
     color:var(--muted-caption);
     margin:0;
   }
+  #map-detail-sheet .map-focus-screen .focus-guide-row{
+    padding:10px 16px 4px;
+  }
+  #map-detail-sheet .map-focus-screen .focus-guide-btn{
+    display:block;
+    width:100%;
+    box-sizing:border-box;
+  }
   #map-detail-sheet .map-focus-screen .btn-next-sm,
   #map-detail-sheet .map-focus-screen .btn-top-sm{
     flex-shrink:0;
@@ -4062,6 +4070,7 @@ function buildFocusViewRankingBlock(id, r, daily, ps){
     ? `<button type="button" class="btn-next-sm" onclick="openFocusFromRanking(${nextId},{noMove:true})" aria-label="${escapeHtmlAttr(t.nextAria)}">${t.next}</button>`
     : "";
   const topBtn = `<button type="button" class="btn-top-sm" onclick="showTopView()" aria-label="${escapeHtmlAttr(t.topAria)}">${t.top}</button>`;
+  const guideBtn = `<div class="focus-guide-row"><button type="button" class="popup-btn popup-btn-primary focus-guide-btn" onclick="onDetailClick(${id})">${isJa ? "詳細ガイド →" : "Resort guide →"}</button></div>`;
 
   const dispName = (!isJa && typeof displayNameEn === "function") ? displayNameEn(r) : r.name;
   const dispPref = (!isJa && typeof getPrefEn === "function") ? getPrefEn(r.pref) : r.pref;
@@ -4093,6 +4102,7 @@ function buildFocusViewRankingBlock(id, r, daily, ps){
           ${badgeHtml}
         </div>
       </div>
+      ${guideBtn}
       ${dayChipsHtml}
       ${l2Html}
       ${tlHtml}
@@ -4509,11 +4519,14 @@ function selectResort(id, opts){
 
 function getResortGuideUrl(resortId){
   const g=RESORT_GUIDES&&RESORT_GUIDES.guides&&RESORT_GUIDES.guides[String(resortId)];
-  if(!g||!g.registryId) return null;
-  const base=(RESORT_GUIDES.baseUrl||"https://guides.japowserch.com").replace(/\/$/,"");
+  if(!g) return null;
   const isEn=document.documentElement.lang==="en"
     ||/-en\.html$/i.test(location.pathname)
     ||new URLSearchParams(location.search).get("lang")==="en";
+  if(isEn&&g.guideUrlEn) return g.guideUrlEn;
+  if(g.guideUrl) return g.guideUrl;
+  if(!g.registryId) return null;
+  const base=(RESORT_GUIDES.baseUrl||"https://guides.japowserch.com").replace(/\/$/,"");
   const q=isEn?"?lang=en":"";
   return base+"/"+g.registryId+"/"+q;
 }

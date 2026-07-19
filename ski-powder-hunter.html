@@ -3048,6 +3048,37 @@ function elevationFactor(resort){
   const f = 1 + (top - base_m) * factor_per_m;
   return Math.max(1, Math.min(max, f));
 }
+/** 谷底観測所の積雪深 → ゲレンデ代表標高への外挿係数 */
+function depthElevationFactor(resort, jma){
+  if(!resort||!jma) return 1;
+  const cfg = elevationSnowFactors || {};
+  const def = cfg.default || {};
+  const regionCfg = (cfg.by_region && resort.region && cfg.by_region[resort.region]) ? cfg.by_region[resort.region] : {};
+  const perM = regionCfg.depth_factor_per_m ?? def.depth_factor_per_m ?? 0.0004;
+  const maxF = regionCfg.depth_max ?? def.depth_max ?? 1.8;
+  let dElev = null;
+  if(typeof jma.elev_diff_m === "number" && Number.isFinite(jma.elev_diff_m)){
+    // elev_diff_m is |repr - station|; signed delta preferred via station_elev
+    dElev = jma.elev_diff_m;
+    if(typeof jma.station_elev_m === "number"){
+      dElev = resortSnowReprElevM(resort) - jma.station_elev_m;
+    }
+  }else if(typeof jma.station_elev_m === "number"){
+    dElev = resortSnowReprElevM(resort) - jma.station_elev_m;
+  }
+  if(dElev==null||!Number.isFinite(dElev)||dElev<=0) return 1;
+  return Math.max(1, Math.min(maxF, 1 + dElev * perM));
+}
+function extrapolateJmaDepthCm(resort, jma, rawCm){
+  if(rawCm==null||!Number.isFinite(rawCm)) return null;
+  return Math.round(rawCm * depthElevationFactor(resort, jma));
+}
+function jmaObsInPriorityBand(jma){
+  if(!jma) return false;
+  if(jma.dist_km==null||!Number.isFinite(jma.dist_km)||jma.dist_km>15) return false;
+  if(jma.elev_diff_m!=null&&Number.isFinite(jma.elev_diff_m)&&Math.abs(jma.elev_diff_m)>400) return false;
+  return true;
+}
 // APIが past_days=1 で8日分返す場合: index 0=前日, 1=今日,…。UIの dayOffset 0=今日 → dayIndex 1
 function getDayIndex(daily, dayOffset){
   if(!daily||!daily.snowfall_sum) return dayOffset;
@@ -3175,26 +3206,55 @@ function getSnowfallForDisplay(resortId, dayOffset){
   let sourceTitle = null;
   if(dayOffset===0){
     const mesh = jmaMeshSnowCache[resortId];
-    if(mesh&&mesh.cm!=null){
-      const blended = Math.max(cm??0, mesh.cm);
-      if(blended>(cm??0)||cm==null){ cm=blended; source="jma_mesh"; }
-    }
-    if(jma){
-      if(jma.snowfall_24h_cm!=null){
-        const j24 = jma.snowfall_24h_cm;
-        const next = Math.max(cm??0, j24);
-        if(next>(cm??0)||cm==null){
-          cm = next;
-          source = "jma_observed";
-          sourceTitle = (jma.station_name||"")+(jma.snowfall_24h_observed_at?" · "+jma.snowfall_24h_observed_at:"");
+    const meshCm = mesh&&mesh.cm!=null ? mesh.cm : null;
+    const hasGoodObs = jma&&jma.snowfall_24h_cm!=null&&jmaObsInPriorityBand(jma);
+    if(hasGoodObs){
+      // 観測優先: max合成しない。モデルは異常値クリップ用の床/天井のみ。
+      cm = jma.snowfall_24h_cm;
+      source = "jma_observed";
+      sourceTitle = (jma.station_name||"")+(jma.snowfall_24h_observed_at?" · "+jma.snowfall_24h_observed_at:"");
+      if(modelCm!=null&&Number.isFinite(modelCm)){
+        const floor = modelCm * 0.45;
+        const ceil = Math.max(modelCm * 1.85, modelCm + 8);
+        cm = Math.max(floor, Math.min(ceil, cm));
+      }
+      // メッシュは「未降分」のみ加算（既降24hと二重にしない＝max禁止）
+      if(meshCm!=null&&meshCm>0){
+        const already3h = (jma.snowfall_3h_cm!=null) ? jma.snowfall_3h_cm : 0;
+        const remaining = Math.max(0, meshCm - already3h);
+        if(remaining>0){
+          cm = cm + remaining;
+          sourceTitle = (sourceTitle||"")+" + mesh残";
         }
       }
-      if(jma.snowfall_3h_cm!=null&&(modelCm==null||modelCm<NEARBY_FALLBACK_MIN_CM)){
+    }else{
+      // 観測なし/遠い: モデル基底。メッシュは加重、既降3h×8とは二重加算しない
+      if(meshCm!=null){
+        if(modelCm==null){
+          cm = meshCm;
+          source = "jma_mesh";
+        }else{
+          cm = 0.5 * modelCm + 0.5 * meshCm;
+          source = "jma_mesh";
+        }
+        sourceTitle = mesh.at ? ("mesh · "+mesh.at) : null;
+      }
+      if(meshCm==null&&jma&&jma.snowfall_3h_cm!=null&&(modelCm==null||modelCm<NEARBY_FALLBACK_MIN_CM)){
         const estDaily = jma.snowfall_3h_cm*8;
-        if(estDaily>(cm??0)){
+        if(cm==null||estDaily>cm){
           cm = estDaily;
           source = "jma_observed";
           sourceTitle = (jma.station_name||"")+(jma.snowfall_3h_observed_at?" · 3h "+jma.snowfall_3h_observed_at:"");
+        }
+      }
+      if(jma&&jma.snowfall_24h_cm!=null&&!hasGoodObs){
+        const j24 = jma.snowfall_24h_cm;
+        if(cm==null){
+          cm = j24;
+          source = "jma_observed";
+          sourceTitle = (jma.station_name||"")+(jma.snowfall_24h_observed_at?" · "+jma.snowfall_24h_observed_at:"");
+        }else{
+          cm = 0.7 * cm + 0.3 * j24;
         }
       }
     }
@@ -3370,8 +3430,18 @@ function getDisplaySnowDepth(resortId, jma, daily, resort){
     if(resort&&resort.snowDepth!=null) return { depthCm: resort.snowDepth, sourceLabel: "ゲレンデ公表", sourceTitle: "ゲレンデ公式（RESORTSの値）。※"+GELENDE_SNOW_NOTE };
   }
   const hasJmaDepth = jma&&(jma.depth_cm!=null||jma.depth_max_today_cm!=null);
-  if(jma&&jma.depth_cm!=null) return { depthCm: jma.depth_cm, sourceLabel: "近隣気象庁観測値", sourceTitle: "近隣の気象庁観測点・"+(jma.station_name||"")+"（"+(jma.observed_at||"")+")" };
-  if(jma&&jma.depth_max_today_cm!=null) return { depthCm: jma.depth_max_today_cm, sourceLabel: "近隣気象庁観測値", sourceTitle: "近隣の気象庁観測点・日最深（"+(jma.station_name||"")+(jma.depth_max_at_hhmm?" "+jma.depth_max_at_hhmm:"")+"）" };
+  if(jma&&jma.depth_cm!=null){
+    const d = extrapolateJmaDepthCm(resort, jma, jma.depth_cm);
+    const f = depthElevationFactor(resort, jma);
+    const elevNote = f>1.01 ? "・標高外挿×"+f.toFixed(2) : "";
+    return { depthCm: d, sourceLabel: "近隣気象庁観測値", sourceTitle: "近隣の気象庁観測点・"+(jma.station_name||"")+"（"+(jma.observed_at||"")+")"+elevNote };
+  }
+  if(jma&&jma.depth_max_today_cm!=null){
+    const d = extrapolateJmaDepthCm(resort, jma, jma.depth_max_today_cm);
+    const f = depthElevationFactor(resort, jma);
+    const elevNote = f>1.01 ? "・標高外挿×"+f.toFixed(2) : "";
+    return { depthCm: d, sourceLabel: "近隣気象庁観測値", sourceTitle: "近隣の気象庁観測点・日最深（"+(jma.station_name||"")+(jma.depth_max_at_hhmm?" "+jma.depth_max_at_hhmm:"")+"）"+elevNote };
+  }
   if(!hasJmaDepth&&daily&&daily!=="loading"&&daily.hourly_snow_depth?.[0]!=null) return { depthCm: Math.round(daily.hourly_snow_depth[0]*100), sourceLabel: "モデル推定", sourceTitle: "気象モデルによる現在の積雪深" };
   return { depthCm: null, sourceLabel: null, sourceTitle: null };
 }
@@ -3381,7 +3451,10 @@ function getDepthForRanking(resortId, jma, daily, resort){
     if(rs&&rs.depth_cm!=null) return rs.depth_cm;
     if(resort&&resort.snowDepth!=null) return resort.snowDepth;
   }
-  if(jma&&(jma.depth_max_today_cm!=null||jma.depth_cm!=null)) return jma.depth_max_today_cm!=null ? jma.depth_max_today_cm : jma.depth_cm;
+  if(jma&&(jma.depth_max_today_cm!=null||jma.depth_cm!=null)){
+    const raw = jma.depth_max_today_cm!=null ? jma.depth_max_today_cm : jma.depth_cm;
+    return extrapolateJmaDepthCm(resort, jma, raw);
+  }
   const hasJmaDepth = jma&&(jma.depth_cm!=null||jma.depth_max_today_cm!=null);
   if(!hasJmaDepth&&daily&&daily!=="loading"&&daily.hourly_snow_depth?.[0]!=null) return Math.round(daily.hourly_snow_depth[0]*100);
   return null;

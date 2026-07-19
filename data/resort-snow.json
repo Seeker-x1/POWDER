@@ -1,1 +1,72 @@
-{}
+{
+  "19": {
+    "depth_cm": 377,
+    "updated_at": "2026-07-16",
+    "source": "RESORTS_static_seed",
+    "name": "ニセコHANAZONOリゾート",
+    "_note": "Static seed from RESORTS; replace with official gelände depth in winter"
+  },
+  "54": {
+    "depth_cm": 205,
+    "updated_at": "2026-07-16",
+    "source": "RESORTS_static_seed",
+    "name": "富良野スキー場",
+    "_note": "Static seed from RESORTS; replace with official gelände depth in winter"
+  },
+  "104": {
+    "depth_cm": 213,
+    "updated_at": "2026-07-16",
+    "source": "RESORTS_static_seed",
+    "name": "八甲田スキー場",
+    "_note": "Static seed from RESORTS; replace with official gelände depth in winter"
+  },
+  "109": {
+    "depth_cm": 300,
+    "updated_at": "2026-07-16",
+    "source": "RESORTS_static_seed",
+    "name": "安比高原スキー場",
+    "_note": "Static seed from RESORTS; replace with official gelände depth in winter"
+  },
+  "151": {
+    "depth_cm": 193,
+    "updated_at": "2026-07-16",
+    "source": "RESORTS_static_seed",
+    "name": "山形蔵王温泉スキー場",
+    "_note": "Static seed from RESORTS; replace with official gelände depth in winter"
+  },
+  "199": {
+    "depth_cm": 149,
+    "updated_at": "2026-07-16",
+    "source": "RESORTS_static_seed",
+    "name": "川場スキー場",
+    "_note": "Static seed from RESORTS; replace with official gelände depth in winter"
+  },
+  "203": {
+    "depth_cm": 38,
+    "updated_at": "2026-07-16",
+    "source": "RESORTS_static_seed",
+    "name": "丸沼高原スキー場",
+    "_note": "Static seed from RESORTS; replace with official gelände depth in winter"
+  },
+  "210": {
+    "depth_cm": 69,
+    "updated_at": "2026-07-16",
+    "source": "RESORTS_static_seed",
+    "name": "群馬みなかみほうだいぎスキー場",
+    "_note": "Static seed from RESORTS; replace with official gelände depth in winter"
+  },
+  "306": {
+    "depth_cm": 175,
+    "updated_at": "2026-07-16",
+    "source": "RESORTS_static_seed",
+    "name": "GALA湯沢スキー場",
+    "_note": "Static seed from RESORTS; replace with official gelände depth in winter"
+  },
+  "324": {
+    "depth_cm": 255,
+    "updated_at": "2026-07-16",
+    "source": "RESORTS_static_seed",
+    "name": "かぐらスキー場",
+    "_note": "Static seed from RESORTS; replace with official gelände depth in winter"
+  }
+}

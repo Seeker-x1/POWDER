@@ -281,6 +281,7 @@ async function main() {
         observed_at: snow.observed_at || null,
         dist_km: Math.round(best.distKm * 10) / 10,
         elev_diff_m: Math.round(best.elevDiffM),
+        station_elev_m: Math.round(stationElevationM(st || {})),
         selection_score: Math.round(best.selectionScore * 10) / 10,
       };
       if (snd && (snd.snowfall_3h_cm != null || snd.snowfall_3h_observed_at)) {

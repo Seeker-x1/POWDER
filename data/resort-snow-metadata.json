@@ -7,7 +7,8 @@
   "17": {
     "snow_lat": 42.8728,
     "snow_lng": 140.6506,
-    "snow_repr_elev_m": 723
+    "snow_repr_elev_m": 900,
+    "_note": "ニセコアンヌプリ upper (top1280)"
   },
   "18": {
     "snow_lat": 42.8572,
@@ -17,7 +18,8 @@
   "19": {
     "snow_lat": 42.8867,
     "snow_lng": 140.7,
-    "snow_repr_elev_m": 480
+    "snow_repr_elev_m": 680,
+    "_note": "ニセコHANAZONO upper-mid (top843)"
   },
   "20": {
     "snow_lat": 42.8436,
@@ -47,7 +49,8 @@
   "54": {
     "snow_lat": 43.3422,
     "snow_lng": 142.3436,
-    "snow_repr_elev_m": 587
+    "snow_repr_elev_m": 780,
+    "_note": "富良野 upper-mid (top1003)"
   },
   "73": {
     "snow_lat": 43.7811,
@@ -62,12 +65,14 @@
   "104": {
     "snow_lat": 40.6531,
     "snow_lng": 140.8589,
-    "snow_repr_elev_m": 701
+    "snow_repr_elev_m": 950,
+    "_note": "八甲田 upper (top1149)"
   },
   "109": {
     "snow_lat": 40,
     "snow_lng": 141.1167,
-    "snow_repr_elev_m": 425
+    "snow_repr_elev_m": 500,
+    "_note": "安比 near top (top555)"
   },
   "114": {
     "snow_lat": 39.2417,
@@ -97,7 +102,8 @@
   "151": {
     "snow_lat": 38.1667,
     "snow_lng": 140.4,
-    "snow_repr_elev_m": 771
+    "snow_repr_elev_m": 1000,
+    "_note": "山形蔵王 upper (top1301)"
   },
   "155": {
     "snow_lat": 38.5292,
@@ -123,6 +129,24 @@
     "snow_lat": 38.1667,
     "snow_lng": 140.4,
     "snow_repr_elev_m": 402
+  },
+  "199": {
+    "snow_lat": 36.7214,
+    "snow_lng": 139.1239,
+    "snow_repr_elev_m": 700,
+    "_note": "川場 upper-mid (top862)"
+  },
+  "203": {
+    "snow_lat": 36.85,
+    "snow_lng": 139.3167,
+    "snow_repr_elev_m": 720,
+    "_note": "丸沼 upper-mid (top929)"
+  },
+  "210": {
+    "snow_lat": 36.7906,
+    "snow_lng": 139.0792,
+    "snow_repr_elev_m": 1000,
+    "_note": "ほうだいぎ upper (top1445)"
   },
   "227": {
     "snow_lat": 36.7933,
@@ -202,12 +226,14 @@
   "306": {
     "snow_lat": 36.9361,
     "snow_lng": 138.8181,
-    "snow_repr_elev_m": 293
+    "snow_repr_elev_m": 380,
+    "_note": "GALA湯沢 near top (top432)"
   },
   "324": {
     "snow_lat": 36.8667,
     "snow_lng": 138.7667,
-    "snow_repr_elev_m": 651
+    "snow_repr_elev_m": 850,
+    "_note": "かぐら upper-mid (top1137)"
   },
   "325": {
     "snow_lat": 36.8,

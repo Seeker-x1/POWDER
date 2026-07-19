@@ -1,4 +1,27 @@
 {
   "comment": "Per-resort opt-in for published snow depth. Global USE_RESORT_PUBLISHED_SNOW stays false; listed ids use resort-snow.json when present.",
-  "resort_ids": []
+  "resort_ids": [
+    54,
+    19,
+    324,
+    203,
+    306,
+    199,
+    210,
+    151,
+    109,
+    104
+  ],
+  "major_names": [
+    "富良野スキー場",
+    "ニセコHANAZONOリゾート",
+    "かぐらスキー場",
+    "丸沼高原スキー場",
+    "GALA湯沢スキー場",
+    "川場スキー場",
+    "群馬みなかみほうだいぎスキー場",
+    "山形蔵王温泉スキー場",
+    "安比高原スキー場",
+    "八甲田スキー場"
+  ]
 }

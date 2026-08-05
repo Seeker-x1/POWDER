@@ -6,7 +6,7 @@ const fs = require("fs");
 const path = require("path");
 const { resortSnowLat, resortSnowLng, resortSnowReprElevM } = require("./resort-snow-meta");
 
-const htmlPath = path.join(__dirname, "..", "ski-powder-hunter.html");
+const htmlPath = path.join(__dirname, "..", "index.html");
 const outPath = path.join(__dirname, "..", "data", "weather.json");
 const DELAY_MS = 600; // 1リクエストあたりの待ち時間（API負荷対策）
 

@@ -10,7 +10,7 @@ type LocalePack = {
 };
 
 const JA: LocalePack = {
-  html: "/ski-powder-hunter.html",
+  html: "/",
   toMap: /マップで全ゲレンデを見る/,
   filterBtn: /^絞込$/,
   closeFilter: /^閉じる$/,

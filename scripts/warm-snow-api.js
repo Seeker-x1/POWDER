@@ -9,7 +9,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const htmlPath = path.join(__dirname, "..", "ski-powder-hunter.html");
+const htmlPath = path.join(__dirname, "..", "index.html");
 const DELAY_MS = 200;
 const { resortSnowLat, resortSnowLng, resortSnowReprElevM } = require("./resort-snow-meta");
 

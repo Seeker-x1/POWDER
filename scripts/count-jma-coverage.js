@@ -5,7 +5,7 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
-const htmlPath = path.join(ROOT, "ski-powder-hunter.html");
+const htmlPath = path.join(ROOT, "index.html");
 const jmaPath = path.join(ROOT, "data", "jma-snow.json");
 const overridesPath = path.join(ROOT, "data", "jma-station-overrides.json");
 const reportsDir = path.join(ROOT, "reports");

@@ -6,7 +6,7 @@ const fs = require("fs");
 const path = require("path");
 const { metaPath } = require("./resort-snow-meta");
 
-const htmlPath = path.join(__dirname, "..", "ski-powder-hunter.html");
+const htmlPath = path.join(__dirname, "..", "index.html");
 const outPath = metaPath;
 
 function extractResorts(html) {

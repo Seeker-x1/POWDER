@@ -8,7 +8,7 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
-const htmlPath = path.join(ROOT, "ski-powder-hunter.html");
+const htmlPath = path.join(ROOT, "index.html");
 const weatherPath = path.join(ROOT, "data", "weather.json");
 const jmaPath = path.join(ROOT, "data", "jma-snow.json");
 const elevFactorsPath = path.join(ROOT, "data", "elevation-snow-factors.json");
@@ -23,7 +23,7 @@ const overridesPath = path.join(ROOT, "data", "jma-station-overrides.json");
 function extractResorts(html) {
   const startMarker = "const RESORTS = ";
   const startIdx = html.indexOf(startMarker);
-  if (startIdx === -1) throw new Error("RESORTS not found in ski-powder-hunter.html");
+  if (startIdx === -1) throw new Error("RESORTS not found in index.html");
   let pos = startIdx + startMarker.length;
   if (html[pos] !== "[") throw new Error("Expected [ after RESORTS =");
   let depth = 1;

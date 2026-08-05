@@ -8,7 +8,7 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
-const htmlPath = path.join(ROOT, "ski-powder-hunter.html");
+const htmlPath = path.join(ROOT, "index.html");
 const outSnow = path.join(ROOT, "data", "resort-snow.json");
 const outIds = path.join(ROOT, "data", "resort-snow-published-ids.json");
 
